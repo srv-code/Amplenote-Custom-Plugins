@@ -1,5 +1,5 @@
 ---
-title: 'Plugin: Markdown'
+title: 'Markdown'
 uuid: 911015fa-5aa6-11f1-97be-67eb3c71825e
 version: 27
 created: '2026-05-28T20:34:47+05:30'
