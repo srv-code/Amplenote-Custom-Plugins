@@ -13,7 +13,7 @@
   noteOption: {
     'Edit note': {
       check(app) {
-        return false; // Disabled action added by author
+        return false; // Disabled action added by original author
       },
 
       async run(app, noteUUID) {
