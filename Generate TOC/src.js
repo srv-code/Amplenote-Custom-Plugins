@@ -101,11 +101,7 @@
 
   _handleError(app, error) {
     const message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
-    if (error?.stack)
-      console.error("Generate TOC plugin error: %O\n%O", message, error.stack);
-    else
-      console.error("Generate TOC plugin error: %O\n%O", message, error);
-
+    console.error("Plugin Error: %O\n%O", message, error?.stack ?? error);
     app.alert(this.constants.messages.INTERNAL_ERROR, {
       primaryAction: { label: "ABORT", icon: "back_hand" },
     });
