@@ -25,9 +25,9 @@ README.md
 ---
 
 ## Branching Strategy
-1. One `main` branch to denote the initial setup of the repo and the root level files. Helpful for making changes that all children branches can inherit by merging with the it which are be common for all of them.
+1. The `main` branch consists of all the latest version of all the plugins/
+1. One `init` branch to denote the initial setup of the repo and the root level files. Helpful for making changes that all children branches can inherit by merging with the it which are be common for all of them.
 1. For each plugin their files will live inside their own folder hence a different root branch for each with their own names e.g. `generate-toc` for the plugin named *"Generate TOC"*.
 1. For each plugin branch there will be the following sub-branches:
-    1. `<plugin-name>/original`: Contains the initial version of the original author's (if not a self-made plugin).
-    1. `<plugin-name>/prod`: Contains the production-ready version. 
+    1. `<plugin-name>/original`: (Optional) Contains the initial version of the original author's (if not a self-made plugin).
     1. `<plugin-name>/feature/*`: Contains the named features in development and not ready for production.
