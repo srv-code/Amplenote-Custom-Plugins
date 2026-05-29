@@ -11,7 +11,7 @@
     },
     messages: {
       INTERNAL_ERROR: 'Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.',
-    }
+    },
   },
 
   _getTOCFromSections(sections, usesOrderedTOC, title, useModernEmbedding, noteUUID) {
@@ -120,10 +120,10 @@
     });
     console.groupEnd();
   },
-    
+  
   noteOption: {
     check(app) {
-      try { 
+      try {
         // this.__diag__checkSettingsParsing(app);
         return this._getSettingValue(app, this.constants.settings.ENABLE_NOTE_LEVEL_TOC, "boolean", true);
       } catch (error) {
