@@ -11,7 +11,7 @@ tags:
 | | |
 |-|-|
 |NAME|Date/Time|
-|ICON|auto_awesome|
+|ICON|access_time|
 |DESCRIPTION|[^1]|
 |INSTRUCTIONS|Use from the below text substitutions:<br />- `date`<br />- `time`<br />- `datetime`<br />- `timestamp`|
 
