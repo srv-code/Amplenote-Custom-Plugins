@@ -36,11 +36,11 @@
       },
     },
 
-    "View note": {
+    View: {
       async run(app, noteUUID) {
         try {
           const content = await app.getNoteContent({ uuid: noteUUID });
-          await app.alert(content, { preface: `Viewing whole note content.\n(${content.length} characters)` });
+          await app.alert(content, { preface: `Viewing note. (${content.length} characters)` });
         } catch (error) {
           this.handleError(app, error);
         } finally {
@@ -54,14 +54,14 @@
     View: {
       async run(app, text) {
         await app.alert(app.context.selectionContent, { 
-          preface: `Viewing selection content.\n(${app.context.selectionContent.length} characters)` 
+          preface: `Viewing selection. (${app.context.selectionContent.length} characters)` 
         });
       },
     },
   },
 
   insertText: {
-    'Insert': {
+    Insert: {
       async run(app) {
         try {
           const newContent = await app.prompt('Enter markdown content to insert:');
