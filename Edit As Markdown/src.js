@@ -40,7 +40,7 @@
       async run(app, noteUUID) {
         try {
           const content = await app.getNoteContent({ uuid: noteUUID });
-          await app.alert(content, { preface: `Viewing note. (${content.length} characters)` });
+          await app.alert(content, { preface: `Viewing note (${content.length} characters)` });
         } catch (error) {
           this.handleError(app, error);
         } finally {
@@ -54,7 +54,7 @@
     View: {
       async run(app, text) {
         await app.alert(app.context.selectionContent, { 
-          preface: `Viewing selection. (${app.context.selectionContent.length} characters)` 
+          preface: `Viewing selection (${app.context.selectionContent.length} characters)` 
         });
       },
     },
