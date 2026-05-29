@@ -20,39 +20,3 @@ tags:
 |Setting|Ordered TOC Expression Name (string \| default: ntoc)|
 |Setting|Unordered TOC Expression Name (string \| default: btoc)|
 |Setting|Use modern link embedding? (y/n \| default: y)|
-\
-
-### Updates
-
-- Nov 20th, 2024
-
-    - Fixed bugs (thanks User #123766!)
-
-    - Changed the default plugin expression names ('otoc' and 'utoc' to 'ntoc' and 'btoc', respectively). If you prefer previous ones, you can change them in Plugin Settings, explained in the description.
-
-    - Unfortunately, this plugin is no longer supported. If you are interested in further development, please use all or part of this note freely without any permission.
-
-- May 31st, 2024
-
-    - Changed icon to "list_alt" (same as the official {toc})
-
-- May 30th, 2024
-
-    - Deprecated {tocf} and added {otoc} and {utoc}. These names can be changed via the Settings.
-
-    - Changed setting keys
-
-- May 26th, 2024
-
-    - First release
-
-- [<mark>Personal updates</mark>](https://www.amplenote.com/notes/e783a7da-50ec-11f1-bba9-cd5be7990b1f#Generate_Table_of_Contents_(TOC)_) 
-
-\
-
-
----
-
-\
-
-# Code
