@@ -2,11 +2,7 @@
 ({
   handleError(app, error) {
     const message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
-    if (error?.stack)
-      console.error("Generate TOC plugin error: %O\n%O", message, error.stack);
-    else
-      console.error("Generate TOC plugin error: %O\n%O", message, error);
-
+    console.error("Plugin Error: %O\n%O", message, error?.stack ?? error);
     app.alert('Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.');
   },
 
