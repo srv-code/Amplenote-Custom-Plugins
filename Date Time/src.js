@@ -80,6 +80,10 @@
 
     // EXPERIMENTAL FEATURE //
     today: {
+      check(app) {
+        return false; // Disabled currently
+      },
+
       run(app) {
         try {
           const enabledExperiments = this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
