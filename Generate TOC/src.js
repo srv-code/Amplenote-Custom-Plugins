@@ -95,7 +95,7 @@
 
     const val = app.settings[settingName];
 
-    if (type === "boolean") return val.length > 0 ? val.trim().toLowerCase() === 'y' : (defaultValue || false);
+    if (type === "boolean") return val?.length > 0 ? val.trim().toLowerCase() === 'y' : (defaultValue || false);
     if (type === "string") return val || defaultValue;
   },
 
