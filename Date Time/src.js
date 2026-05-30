@@ -1,6 +1,6 @@
 // JavaScript
 ({
-   constants: {
+  constants: {
     settings: {
       ENABLED_EXPERIMENTS: 'Enable experimental features? (y/n | default: n)',
     },
