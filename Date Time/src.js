@@ -1,12 +1,37 @@
 // JavaScript
 ({
-  handleError(app, error) {
-    const message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
-    console.error("Plugin Error: %O\n%O", message, error?.stack ?? error);
-    app.alert('Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.');
+   constants: {
+    settings: {
+      ENABLED_EXPERIMENTS: 'Enable experimental features? (y/n | default: n)',
+    },
+    messages: {
+      EXPERIMENTAL_FEATURE: 'This is an experimental feature.\nPlease enable it in the plugin settings to use it.',
+      UNHANDLED_ERROR: 'Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.',
+    },
   },
 
-  get(what) {
+  _handleError(app, error) {
+    const message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
+    console.error("Plugin Error: %O\n%O", message, error?.stack ?? error);
+    app.alert(this.constants.messages.UNHANDLED_ERROR);
+  },
+
+  _getSettingValue(app, settingName, type = "string", defaultValue = null) {
+    // Ensure the provided key is one of the defined constant keys
+    if (!Object.values(this.constants.settings).includes(settingName))
+      throw new Error(`Invalid setting name '${settingName}' specified`);
+
+    // Validate the requested type
+    if (type !== "boolean" && type !== "string")
+      throw new Error(`Invalid type with value '${type}' specified`);
+
+    const val = app.settings[settingName];
+
+    if (type === "boolean") return val?.length > 0 ? val.trim().toLowerCase() === 'y' : (defaultValue || false);
+    if (type === "string") return val || defaultValue;
+  },
+
+  _get(what) {
     const now = new Date();
 
     if(what === 'date') 
@@ -25,7 +50,7 @@
       }).format(now);
 
     if(what === 'datetime')
-      return `${this.get('date')} at ${this.get('time')}`;
+      return `${this._get('date')} at ${this._get('time')}`;
 
     if(what === 'timestamp') 
       return new Intl.DateTimeFormat("en-GB", {
@@ -45,9 +70,26 @@
     date: {
       run(app) {
         try {
-          return this.get('date');
+          return this._get('date');
         } catch (error) {
-          this.handleError(app, error);
+          this._handleError(app, error);
+          return '';
+        }
+      }
+    },
+
+    // EXPERIMENTAL FEATURE //
+    today: {
+      run(app) {
+        try {
+          const enabledExperiments = this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
+          if(!enabledExperiments) {
+            app.alert(this.constants.messages.EXPERIMENTAL_FEATURE);
+            return '';
+          }
+          return this._get('date');
+        } catch (error) {
+          this._handleError(app, error);
           return '';
         }
       }
@@ -56,9 +98,26 @@
     time: {
       run(app) {
         try {
-          return this.get('time');
+          return this._get('time');
         } catch (error) {
-          this.handleError(app, error);
+          this._handleError(app, error);
+          return '';
+        }
+      }
+    },
+    
+    // EXPERIMENTAL FEATURE //
+    now: {
+      run(app) {
+        try {
+          const enabledExperiments = this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
+          if(!enabledExperiments) {
+            app.alert(this.constants.messages.EXPERIMENTAL_FEATURE);
+            return '';
+          }
+          return this._get('time');
+        } catch (error) {
+          this._handleError(app, error);
           return '';
         }
       }
@@ -67,9 +126,9 @@
     datetime: {
       run(app) {
         try {
-          return this.get('datetime');
+          return this._get('datetime');
         } catch (error) {
-          this.handleError(app, error);
+          this._handleError(app, error);
           return '';
         }
       }
@@ -78,9 +137,9 @@
     timestamp: {
       run(app) {
         try {
-          return this.get('timestamp');
+          return this._get('timestamp');
         } catch (error) {
-          this.handleError(app, error);
+          this._handleError(app, error);
           return '';
         }
       }
