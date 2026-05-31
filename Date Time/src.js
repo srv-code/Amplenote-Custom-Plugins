@@ -5,7 +5,6 @@
       ENABLED_EXPERIMENTS: 'Enable experimental features? (y/n | default: n)',
     },
     messages: {
-      EXPERIMENTAL_FEATURE: 'This is an experimental feature.\nPlease enable it in the plugin settings to use it.',
       UNHANDLED_ERROR: 'Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.',
     },
   },
@@ -31,9 +30,7 @@
     if (type === "string") return val || defaultValue;
   },
 
-  _get(what) {
-    const now = new Date();
-
+  _get(what, now = new Date()) {
     if(what === 'date') 
       return new Intl.DateTimeFormat("en-US", {
           weekday: "short",
@@ -42,6 +39,18 @@
           year: "numeric"
         }).format(now);
 
+    if(what === 'yesterday') {
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      return this._get('date', yesterday);
+    }
+
+    if(what === 'tomorrow') {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return this._get('date', tomorrow);
+    }
+    
     if(what === 'time') 
       return new Intl.DateTimeFormat("en-US", {
         hour: "2-digit",
@@ -63,6 +72,9 @@
         hour12: false
       }).format(now);
 
+    if(what === 'milliseconds')
+      return now.getTime().toString();
+
     throw Error(`Illegal argument of what: ${what}`);
   },
 
@@ -81,17 +93,44 @@
     // EXPERIMENTAL FEATURE //
     today: {
       check(app) {
-        return false; // Disabled currently
+        return this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
       },
 
       run(app) {
         try {
-          const enabledExperiments = this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
-          if(!enabledExperiments) {
-            app.alert(this.constants.messages.EXPERIMENTAL_FEATURE);
-            return '';
-          }
           return this._get('date');
+        } catch (error) {
+          this._handleError(app, error);
+          return '';
+        }
+      }
+    },
+
+    // EXPERIMENTAL FEATURE //
+    yesterday: {
+      check(app) {
+        return this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
+      },
+
+      run(app) {
+        try {
+          return this._get('yesterday');
+        } catch (error) {
+          this._handleError(app, error);
+          return '';
+        }
+      }
+    },
+
+    // EXPERIMENTAL FEATURE //
+    tomorrow: {
+      check(app) {
+        return this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
+      },
+
+      run(app) {
+        try {
+          return this._get('tomorrow');
         } catch (error) {
           this._handleError(app, error);
           return '';
@@ -112,13 +151,12 @@
     
     // EXPERIMENTAL FEATURE //
     now: {
+      check(app) {
+        return this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
+      },
+
       run(app) {
         try {
-          const enabledExperiments = this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
-          if(!enabledExperiments) {
-            app.alert(this.constants.messages.EXPERIMENTAL_FEATURE);
-            return '';
-          }
           return this._get('time');
         } catch (error) {
           this._handleError(app, error);
@@ -142,6 +180,17 @@
       run(app) {
         try {
           return this._get('timestamp');
+        } catch (error) {
+          this._handleError(app, error);
+          return '';
+        }
+      }
+    },
+
+    milliseconds: {
+      run(app) {
+        try {
+          return this._get('milliseconds');
         } catch (error) {
           this._handleError(app, error);
           return '';
