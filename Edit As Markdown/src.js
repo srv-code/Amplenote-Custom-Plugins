@@ -63,9 +63,7 @@
           const newContent = await app.prompt(this.constants.messages.EDIT_NOTE_MARKDOWN, {
             inputs: [{ type: 'text', value: oldContent }]
           });
-          if (newContent === null) return;
-          
-          await app.replaceNoteContent({ uuid: noteUUID }, newContent);
+          if (typeof newContent === 'string') await app.replaceNoteContent({ uuid: noteUUID }, newContent);
         } catch (error) {
           this._handleError(app, error);
         } finally {
