@@ -2,11 +2,12 @@
 ({
   constants: {
     settings: {
-      ENABLED_EXPERIMENTS: 'Enable experimental features? (y/n | default: n)',
-      ONLY_ALLOW_EXPERIMENTS_ON_TEST_NOTES: 'Only allow experimental features on notes tagged with `*/test/*`? (y/n | default: y)',
+      ENABLED_EXPERIMENTS: '🧪 Enable experimental features? (y/n | default: n)',
+      ONLY_ALLOW_EXPERIMENTS_ON_TEST_NOTES: '🧪 Only allow experimental features on notes tagged with `*/test/*`? (y/n | default: y)',
     },
     messages: {
       UNHANDLED_ERROR: 'Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.',
+      OPERATION_FAILED: 'OPERATION FAILED ❌',
       EDIT_NOTE_MARKDOWN: 'Edit note as Markdown:',
       ENTER_INSERTION_MARKDOWN: 'Enter markdown content to insert:',
       ENTER_REPLACEMENT_MARKDOWN: 'Edit markdown content to replace with:',
@@ -15,13 +16,15 @@
     },
     _: {
       TEST_TAG_NAME: 'test',
-    }
+    },
   },
 
-  _handleError(app, error) {
+  _handleError(app, error, showErrorMessage = false) {
     const message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
     console.error("Plugin Error: %O\n%O", message, error?.stack ?? error);
-    app.alert(this.constants.messages.UNHANDLED_ERROR);
+    app.alert(showErrorMessage ? message : this.constants.messages.UNHANDLED_ERROR, { 
+      preface: this.constants.messages.OPERATION_FAILED 
+    });
   },
 
   _getSettingValue(app, settingName, type = "string", defaultValue = null) {
@@ -43,8 +46,8 @@
     if(!experimentsEnabled) return false;
     
     const onlyOnTestNotes = this._getSettingValue(app, this.constants.settings.ONLY_ALLOW_EXPERIMENTS_ON_TEST_NOTES, "boolean", true)
-    const note = await app.notes?.find(app.context?.noteUUID);
-    const hasTestTag = note?.tags?.some(tag => tag.split('/').includes(this.constants._.TEST_TAG_NAME));
+    const note = await app.notes.find(app.context?.noteUUID);
+    const hasTestTag = note?.tags.some(tag => tag.split('/').includes(this.constants._.TEST_TAG_NAME));
 
     if(onlyOnTestNotes) return hasTestTag;
     return true;
@@ -52,7 +55,7 @@
 
   noteOption: {
     // EXPERIMENTAL FEATURE //
-    Edit: {
+    'Edit 🧪': {
       async check(app) {
         return await this._enableExperiments(app);
       },
@@ -65,7 +68,7 @@
           });
           if (typeof newContent === 'string') await app.replaceNoteContent({ uuid: noteUUID }, newContent);
         } catch (error) {
-          this._handleError(app, error);
+          this._handleError(app, error, true);
         } finally {
           return null;
         }
@@ -99,8 +102,8 @@
       },
     },
 
-    Edit: {
-      // EXPERIMENTAL FEATURE //
+    // EXPERIMENTAL FEATURE //
+    'Edit 🧪': {
       async check(app) {
         return await this._enableExperiments(app);
       },
