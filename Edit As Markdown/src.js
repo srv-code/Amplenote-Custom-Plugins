@@ -46,11 +46,11 @@
     if(!experimentsEnabled) return false;
     
     const onlyOnTestNotes = this._getSettingValue(app, this.constants.settings.ONLY_ALLOW_EXPERIMENTS_ON_TEST_NOTES, "boolean", true)
+    if(!onlyOnTestNotes) return true;
+
     const note = await app.notes.find(app.context?.noteUUID);
     const hasTestTag = note?.tags.some(tag => tag.split('/').includes(this.constants._.TEST_TAG_NAME));
-
-    if(onlyOnTestNotes) return hasTestTag;
-    return true;
+    return hasTestTag;
   },
 
   noteOption: {
