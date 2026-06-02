@@ -6,6 +6,7 @@
       ONLY_ALLOW_EXPERIMENTS_ON_TEST_NOTES: '🧪 Only allow experimental features on notes tagged with `*/test/*`? (y/n | default: y)',
     },
     messages: {
+      INVALID_SETTING_ERROR: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
       UNHANDLED_ERROR: 'Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.',
       OPERATION_FAILED: 'OPERATION FAILED ❌',
       EDIT_NOTE_MARKDOWN: 'Edit note as Markdown:',
@@ -17,6 +18,18 @@
     _: {
       TEST_TAG_NAME: 'test',
     },
+  },
+
+  validateSettings(app, settings) {
+    console.log('validateSettings', {settings});
+    const booleanValues = ['y', 'n'];
+    const errors = [];
+    for(const [name, value] of Object.entries(settings)) {
+      if(!booleanValues.includes(value))
+        errors.push(this.constants.messages.INVALID_SETTING_ERROR.replace('$1', name));
+    }
+    if(errors.length === 0) return false;
+    return errors;
   },
 
   _handleError(app, error, showErrorMessage = false) {

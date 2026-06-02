@@ -10,8 +10,26 @@
       UNORDERED_TOC_EXPRESSION_NAME: "Unordered TOC Expression Name (string | default: btoc)",
     },
     messages: {
+      INVALID_SETTING_ERROR: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
       INTERNAL_ERROR: 'Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.',
     },
+  },
+
+  validateSettings(app, settings) {
+    const booleanValues = ['y', 'n'];
+    const errors = [];
+    const exceptionList = [
+      this.constants.settings.TITLE,
+      this.constants.settings.ORDERED_TOC_EXPRESSION_NAME,
+      this.constants.settings.UNORDERED_TOC_EXPRESSION_NAME,
+    ];
+    for(const [name, value] of Object.entries(settings)) {
+      if(exceptionList.includes(name)) continue;
+      if(!booleanValues.includes(value))
+        errors.push(this.constants.messages.INVALID_SETTING_ERROR.replace('$1', name));
+    }
+    if(errors.length === 0) return false;
+    return errors;
   },
 
   _getTOCFromSections(sections, usesOrderedTOC, title, useModernEmbedding, noteUUID) {

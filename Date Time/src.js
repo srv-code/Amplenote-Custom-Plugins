@@ -5,8 +5,20 @@
       ENABLED_EXPERIMENTS: 'Enable experimental features? (y/n | default: n)',
     },
     messages: {
+      INVALID_SETTING_ERROR: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
       UNHANDLED_ERROR: 'Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.',
     },
+  },
+
+  validateSettings(app, settings) {
+    const booleanValues = ['y', 'n'];
+    const errors = [];
+    for(const [name, value] of Object.entries(settings)) {
+      if(!booleanValues.includes(value))
+        errors.push(this.constants.messages.INVALID_SETTING_ERROR.replace('$1', name));
+    }
+    if(errors.length === 0) return false;
+    return errors;
   },
 
   _handleError(app, error) {
