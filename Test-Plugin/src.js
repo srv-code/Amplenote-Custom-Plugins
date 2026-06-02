@@ -128,8 +128,8 @@
         const note = await app.notes.find(app.context.noteUUID);
         const clonedNote = {};
         const whiteListedFunctions = [
-          'backlinks', 'content', 'images', 'openCounts', 'publicURL',
-          'sections', 'settings', 'tasks', 'url',
+          'backlinks', 'images', 'openCounts', 
+          'publicURL', 'settings', 'tasks', 'url',
         ];
         for(const key of Object.keys(note)) {
           if(typeof note[key] === 'function') {

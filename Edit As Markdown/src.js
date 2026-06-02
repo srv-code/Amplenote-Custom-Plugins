@@ -54,7 +54,7 @@
     if (type === "string") return val || defaultValue;
   },
 
-  async _enableExperiments(app) {
+  async _hasEnabledExperiments(app) {
     const experimentsEnabled = this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean")
     if(!experimentsEnabled) return false;
     
@@ -70,7 +70,7 @@
     // EXPERIMENTAL FEATURE //
     'Edit 🧪': {
       async check(app) {
-        return await this._enableExperiments(app);
+        return await this._hasEnabledExperiments(app);
       },
 
       async run(app, noteUUID) {
@@ -118,7 +118,7 @@
     // EXPERIMENTAL FEATURE //
     'Edit 🧪': {
       async check(app) {
-        return await this._enableExperiments(app);
+        return await this._hasEnabledExperiments(app);
       },
 
       async run(app, text) {
