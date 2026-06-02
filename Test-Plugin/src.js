@@ -9,7 +9,7 @@
     messages: {
       INVALID_SETTING_ERROR: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
       ERROR_INVALID_SETTING_VALUE: 'Invalid setting value. Please enter y or n',
-    }
+    },
   },
 
   validateSettings(app, settings) {
@@ -99,22 +99,24 @@
 
     'user-agent': {
       async run(app) {
-        let client = null;
+        let agent = null;
         if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
-          client = {
+          agent = {
             type: 'Browser', 
             platform: window.navigator.userAgentData?.platform,
             highEntropyValues: await window.navigator.userAgentData?.getHighEntropyValues(["architecture", "model", "platformVersion"]),
             mobile: window.navigator.userAgentData?.mobile,
           };
         } else if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-          client = 'Node.js';
+          agent = 'Node.js';
         } else {
-          client = 'Unknown Environment';
+          agent = 'Unknown Environment';
         }
-        console.log('User agent:', client);
+
+        console.log('User Agent Info:', agent);
         if(!this._isRunningOnDesktop()) 
-          app.alert(JSON.stringify(client, null, 2), { preface: 'Client Info' });
+          app.alert(JSON.stringify(agent, null, 2), { preface: 'User Agent Info' });
+
         return 'ok';
       },
     },
