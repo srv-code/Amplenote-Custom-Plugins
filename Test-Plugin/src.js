@@ -27,6 +27,10 @@
     return errors;
   },
 
+  _isRunningOnDesktop() {
+    return !window?.navigator?.userAgentData?.mobile;
+  },
+
   // appOption: {
   //   "Open": async function(app) {
   //     app.alert('Invoked!');
@@ -55,17 +59,25 @@
 
   insertText: {
     'plugin-settings': {
+      check() {
+        return this._isRunningOnDesktop();
+      },
+      
       run(app) {
         console.log('Plugin settings:', {
           pluginUUID: app.context.pluginUUID, 
           noteUUID: app.context.noteUUID, 
-          settings: app.settings
+          settings: app.settings,
         });
         return 'ok';
       },
     },
 
     'note-sections': {
+      check() {
+        return this._isRunningOnDesktop();
+      },
+      
       async run(app) {
         const sections = await app.getNoteSections({ uuid: app.context.noteUUID });
         console.log('Note sections:', sections);
@@ -74,6 +86,10 @@
     },
 
     'note-content': {
+      check() {
+        return this._isRunningOnDesktop();
+      },
+      
       async run(app) {
         const content = await app.getNoteContent({ uuid: app.context.noteUUID });
         console.log('Note content:', app.context.noteUUID, content);
@@ -82,24 +98,32 @@
     },
 
     'user-agent': {
-      check() {
-        return true;
-      },
-      
       async run(app) {
-        let agent = null;
+        let client = null;
         if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
-          agent = 'Browser';
+          client = {
+            type: 'Browser', 
+            platform: window.navigator.userAgentData?.platform,
+            highEntropyValues: await window.navigator.userAgentData?.getHighEntropyValues(["architecture", "model", "platformVersion"]),
+            mobile: window.navigator.userAgentData?.mobile,
+          };
         } else if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-          agent = 'Node.js';
+          client = 'Node.js';
         } else {
-          agent = 'Unknown Environment';
+          client = 'Unknown Environment';
         }
-        app.alert("agent: " + agent);
+        console.log('User agent:', client);
+        if(!this._isRunningOnDesktop()) 
+          app.alert(JSON.stringify(client, null, 2), { preface: 'Client Info' });
+        return 'ok';
       },
     },
 
     'note-info': {
+      check() {
+        return this._isRunningOnDesktop();
+      },
+      
       async run(app) {
         const note = await app.notes.find(app.context.noteUUID);
         const clonedNote = {};
