@@ -13,14 +13,14 @@
   },
 
   validateSettings(app, settings) {
-    const booleanValues = ['y', 'n'];
+    const booleanRegex = /y|n/gi;
     const errors = [];
     const exceptionList = [
       this.constants.settings.MESSAGE,
     ];
     for(const [name, value] of Object.entries(settings)) {
       if(exceptionList.includes(name)) continue;
-      if(!booleanValues.includes(value))
+      if(!booleanRegex.test(value.trim()))
         errors.push(this.constants.messages.INVALID_SETTING_ERROR.replace('$1', name));
     }
     if(errors.length === 0) return false;

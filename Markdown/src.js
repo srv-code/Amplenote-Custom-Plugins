@@ -22,10 +22,10 @@
 
   validateSettings(app, settings) {
     console.log('validateSettings', {settings});
-    const booleanValues = ['y', 'n'];
+    const booleanRegex = /y|n/gi;
     const errors = [];
     for(const [name, value] of Object.entries(settings)) {
-      if(!booleanValues.includes(value))
+      if(!booleanRegex.test(value.trim()))
         errors.push(this.constants.messages.INVALID_SETTING_ERROR.replace('$1', name));
     }
     if(errors.length === 0) return false;

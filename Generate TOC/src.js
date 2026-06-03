@@ -16,7 +16,7 @@
   },
 
   validateSettings(app, settings) {
-    const booleanValues = ['y', 'n'];
+    const booleanRegex = /y|n/gi;
     const errors = [];
     const exceptionList = [
       this.constants.settings.TITLE,
@@ -25,7 +25,7 @@
     ];
     for(const [name, value] of Object.entries(settings)) {
       if(exceptionList.includes(name)) continue;
-      if(!booleanValues.includes(value))
+      if(!booleanRegex.test(value.trim()))
         errors.push(this.constants.messages.INVALID_SETTING_ERROR.replace('$1', name));
     }
     if(errors.length === 0) return false;
@@ -112,7 +112,6 @@
       throw new Error(`Invalid type with value '${type}' specified`);
 
     const val = app.settings[settingName];
-
     if (type === "boolean") return val?.length > 0 ? val.trim().toLowerCase() === 'y' : (defaultValue || false);
     if (type === "string") return val || defaultValue;
   },
