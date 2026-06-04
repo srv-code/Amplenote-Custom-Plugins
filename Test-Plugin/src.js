@@ -45,7 +45,6 @@
         Functions:
           - show all 
           - find the top and least n tags with counts 
-          - find empty tags 
       */
       const _tags = await app.getTags();
       const tagStats = {
@@ -53,7 +52,6 @@
           length: _tags.length,
           populated: null,
           least: null,
-          empty: null,
         },
         ALL: {},
       };
@@ -63,7 +61,6 @@
       const sortedTags = _tags.toSorted((a, b) => b.noteCount - a.noteCount);
       tagStats.COUNTS.populated = sortedTags.filter(tag => tag.noteCount > 0).slice(0, LIMIT);
       tagStats.COUNTS.least = sortedTags.filter(tag => tag.noteCount > 0).slice(-LIMIT);
-      tagStats.COUNTS.empty = sortedTags.filter(tag => tag.noteCount === 0);
 
       if(this._isRunningOnDesktop())
         console.log('Tag Statistics', tagStats, { _tags });
@@ -71,7 +68,6 @@
       let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
       message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
       message += `Top ${LIMIT} least poplulated: ${this._getTagsAsText(tagStats.COUNTS.least)}\n\n`;
-      message += `Empty: ${this._getTagsAsText(tagStats.COUNTS.empty)}`;
       if(this._isRunningOnDesktop()) message += '\n\n(See console log for more details)';
 
       app.alert(message, { preface: 'TAG STATISTICS' });
