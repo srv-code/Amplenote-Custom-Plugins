@@ -10,6 +10,9 @@
       INVALID_SETTING_ERROR: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
       ERROR_INVALID_SETTING_VALUE: 'Invalid setting value. Please enter y or n',
     },
+    _: {
+      TAG_EXTRACTION_LIMIT: 5,
+    },
   },
 
   validateSettings(app, settings) {
@@ -31,15 +34,49 @@
     return !window?.navigator?.userAgentData?.mobile;
   },
 
-  // appOption: {
-  //   "Open": async function(app) {
-  //     app.alert('Invoked!');
-  //     // await app.openEmbed();
-  //     // await app.navigate(
-  //     //   "https://www.amplenote.com/notes/plugins/" + app.context.pluginUUID
-  //     // );
-  //   },
-  // },
+  _getTagsAsText(tags = []) {
+    if(tags.length === 0) return 'None';
+    return tags.map((tag, index) => `\n  [${index+1}]  ${tag.text}: ${tag.noteCount}`).join('');
+  },
+
+  appOption: {
+    "Tag Stats": async function(app) {
+      /* 
+        Functions:
+          - show all 
+          - find the top and least n tags with counts 
+          - find empty tags 
+      */
+      const _tags = await app.getTags();
+      const tagStats = {
+        COUNTS: {
+          length: _tags.length,
+          populated: null,
+          least: null,
+          empty: null,
+        },
+        ALL: {},
+      };
+      for(const tag of _tags) tagStats.ALL[tag.text] = {...tag};
+
+      const LIMIT = this.constants._.TAG_EXTRACTION_LIMIT;
+      const sortedTags = [..._tags].sort((a, b) => b.noteCount - a.noteCount);
+      tagStats.COUNTS.populated = sortedTags.filter(tag => tag.noteCount > 0).slice(0, LIMIT);
+      tagStats.COUNTS.least = sortedTags.filter(tag => tag.noteCount > 0).slice(-LIMIT);
+      tagStats.COUNTS.empty = sortedTags.filter(tag => tag.noteCount === 0);
+
+      if(this._isRunningOnDesktop()) {
+        console.log('TAG STATS', tagStats);
+      } else {
+        let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
+        message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
+        message += `Top ${LIMIT} least poplulated: ${this._getTagsAsText(tagStats.COUNTS.least)}\n\n`;
+        message += `Empty: ${this._getTagsAsText(tagStats.COUNTS.empty)}`;
+
+        app.alert(message, { preface: 'TAG STATISTICS' });
+      }
+    },
+  },
   
   // noteOption: {
   //   check(app) {
