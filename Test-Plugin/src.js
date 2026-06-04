@@ -60,13 +60,13 @@
       for(const tag of _tags) tagStats.ALL[tag.text] = {...tag};
 
       const LIMIT = this.constants._.TAG_EXTRACTION_LIMIT;
-      const sortedTags = [..._tags].sort((a, b) => b.noteCount - a.noteCount);
+      const sortedTags = _tags.toSorted((a, b) => b.noteCount - a.noteCount);
       tagStats.COUNTS.populated = sortedTags.filter(tag => tag.noteCount > 0).slice(0, LIMIT);
       tagStats.COUNTS.least = sortedTags.filter(tag => tag.noteCount > 0).slice(-LIMIT);
       tagStats.COUNTS.empty = sortedTags.filter(tag => tag.noteCount === 0);
 
       if(this._isRunningOnDesktop())
-        console.log('Tag Statistics', tagStats);
+        console.log('Tag Statistics', tagStats, { _tags });
 
       let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
       message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
