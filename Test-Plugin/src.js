@@ -66,7 +66,7 @@
       tagStats.COUNTS.empty = sortedTags.filter(tag => tag.noteCount === 0);
 
       if(this._isRunningOnDesktop()) {
-        console.log('TAG STATS', tagStats);
+        console.log('Tag Statistics', tagStats);
       } else {
         let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
         message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
