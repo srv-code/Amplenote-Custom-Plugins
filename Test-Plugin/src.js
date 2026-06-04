@@ -65,16 +65,16 @@
       tagStats.COUNTS.least = sortedTags.filter(tag => tag.noteCount > 0).slice(-LIMIT);
       tagStats.COUNTS.empty = sortedTags.filter(tag => tag.noteCount === 0);
 
-      if(this._isRunningOnDesktop()) {
+      if(this._isRunningOnDesktop())
         console.log('Tag Statistics', tagStats);
-      } else {
-        let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
-        message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
-        message += `Top ${LIMIT} least poplulated: ${this._getTagsAsText(tagStats.COUNTS.least)}\n\n`;
-        message += `Empty: ${this._getTagsAsText(tagStats.COUNTS.empty)}`;
 
-        app.alert(message, { preface: 'TAG STATISTICS' });
-      }
+      let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
+      message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
+      message += `Top ${LIMIT} least poplulated: ${this._getTagsAsText(tagStats.COUNTS.least)}\n\n`;
+      message += `Empty: ${this._getTagsAsText(tagStats.COUNTS.empty)}`;
+      if(this._isRunningOnDesktop()) message += '\n\n(See console log for more details)';
+
+      app.alert(message, { preface: 'TAG STATISTICS' });
     },
   },
   
