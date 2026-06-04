@@ -67,7 +67,7 @@
       let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
       message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
       message += `Top ${LIMIT} least poplulated: ${this._getTagsAsText(tagStats.COUNTS.least)}\n\n`;
-      if(this._isRunningOnDesktop()) message += '\n\n(See console log for more details)';
+      if(this._isRunningOnDesktop()) message += '(See console log for more details)';
 
       app.alert(message, { preface: 'TAG STATISTICS' });
     },
