@@ -62,8 +62,7 @@
       tagStats.COUNTS.populated = sortedTags.filter(tag => tag.noteCount > 0).slice(0, LIMIT);
       tagStats.COUNTS.least = sortedTags.filter(tag => tag.noteCount > 0).slice(-LIMIT);
 
-      if(this._isRunningOnDesktop())
-        console.log('Tag Statistics', tagStats, { _tags });
+      if(this._isRunningOnDesktop()) console.log('Tag Statistics', tagStats, { _tags });
 
       let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
       message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
