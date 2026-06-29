@@ -37,6 +37,13 @@
         defaultValue: 'n',
         type: 'boolean',
       },
+
+      /** Hides the last updated message below the TOC section header */
+      HIDE_LAST_UPDATE_MESSAGE: {
+        label: "Hide Last Update Message (y/n | default: n)",
+        defaultValue: 'n',
+        type: 'boolean',
+      },
     },
     messages: {
       ERROR_INVALID_TITLE_SETTING_VALUE: 'Invalid value provided for "$1". Please remove the following characters: $2',
@@ -187,29 +194,42 @@
 
   _getNextIndex(index, level, unordered) {
     if(level === 1) {
-      if(unordered) return this.constants._.BULLET_H1_CHAR; 
+      if(unordered) return this.constants._.BULLET_H1_CHAR.padStart(3); 
       if(index[level] === null) index[level] = 1;
       else index[level] += 1;
 
       index[2] = null;
       index[3] = null;
     } else if(level === 2) {
-      if(unordered) return this.constants._.BULLET_H2_CHAR; 
+      if(unordered) return this.constants._.BULLET_H2_CHAR.padStart(3); 
       if(index[level] === null) index[level] = 'a';
       else index[level] = this._nextAlphabet(index[level]);
 
       index[3] = null;
     } else if(level === 3) {
-      if(unordered) return this.constants._.BULLET_H3_CHAR; 
+      if(unordered) return this.constants._.BULLET_H3_CHAR.padStart(3); 
       if(index[level] === null) index[level] = 'i';
       else index[level] = this._nextRoman(index[level]);
     } else throw Error('Invalid level');
 
-    return `${index[level]}.`;
+    return `${index[level].toString().padStart(3)}.`;
   },
 
-  _generateTOCFromSections(noteUUID, title, sections, considerHeaderBreaks, unordered, insertOnly = false) {
-    let content = '';
+  _getLastUpdateMessage(date) {
+    const datetime = new Intl.DateTimeFormat("en-US", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }).format(new Date());
+    return `*<mark style="color:#777879;">Last updated: ${datetime}<!-- {"cycleColor":"44"} --></mark>*\n`
+  },
+
+  _generateTOCFromSections(noteUUID, title, sections, considerHeaderBreaks, unordered, hideLastUpdateMessage, insertOnly = false) {
+    let content = hideLastUpdateMessage ? '' : this._getLastUpdateMessage(new Date());
     const indexes = { 1: null, 2: null, 3: null };
     let sectionIndex = 0;
     let section = null;
@@ -259,6 +279,7 @@
       WARN_ON_DUPLICATE_TITLES: this._getSettingValue(app, 'WARN_ON_DUPLICATE_TITLES'),
       WARN_ON_OFFENDING_SECTION_TITLES: this._getSettingValue(app, 'WARN_ON_OFFENDING_SECTION_TITLES'),
       USE_BULLET_POINTS: this._getSettingValue(app, 'USE_BULLET_POINTS'),
+      HIDE_LAST_UPDATE_MESSAGE: this._getSettingValue(app, 'HIDE_LAST_UPDATE_MESSAGE'),
     });
     console.groupEnd();
   },
@@ -322,6 +343,7 @@
         sections,
         this._getSettingValue(app, 'CONSIDER_HEADER_BREAKS'),
         this._getSettingValue(app, 'USE_BULLET_POINTS'),
+        this._getSettingValue(app, 'HIDE_LAST_UPDATE_MESSAGE'),
         insertOnly,
       );
 
