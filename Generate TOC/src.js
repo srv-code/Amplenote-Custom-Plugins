@@ -194,20 +194,20 @@
 
   _getNextIndex(index, level, unordered) {
     if(level === 1) {
-      if(unordered) return this.constants._.BULLET_H1_CHAR.padStart(3); 
+      if(unordered) return this.constants._.BULLET_H1_CHAR;
       if(index[level] === null) index[level] = 1;
       else index[level] += 1;
 
       index[2] = null;
       index[3] = null;
     } else if(level === 2) {
-      if(unordered) return this.constants._.BULLET_H2_CHAR.padStart(3); 
+      if(unordered) return this.constants._.BULLET_H2_CHAR;
       if(index[level] === null) index[level] = 'a';
       else index[level] = this._nextAlphabet(index[level]);
 
       index[3] = null;
     } else if(level === 3) {
-      if(unordered) return this.constants._.BULLET_H3_CHAR.padStart(3); 
+      if(unordered) return this.constants._.BULLET_H3_CHAR;
       if(index[level] === null) index[level] = 'i';
       else index[level] = this._nextRoman(index[level]);
     } else throw Error('Invalid level');
@@ -261,13 +261,20 @@
     throw Error(`Invalid setting type: ${label} of type ${type}`);
   },
 
-  _handleError(app, error) {
-    const message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
+  async _handleError(app, error) {
+    let message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
     console.error("Plugin Error: %O\n%O", message, error?.stack ?? error);
-    app.alert(this.constants.messages.ERROR_INTERNAL_BODY.replace('$1', message), {
+    message = this.constants.messages.ERROR_INTERNAL_BODY.replace('$1', message);
+    const response = await app.alert(message, {
       preface: this.constants.messages.ERROR_INTERNAL_TITLE, 
       primaryAction: { label: "ABORT", icon: "back_hand" },
+      actions: [{ icon: "content_copy", label: "COPY", value: "COPY" }],
     });
+    if(response === "COPY") 
+      await app.writeClipboardData(
+        this._stringifyAlertMessage(this.constants.messages.ERROR_INTERNAL_TITLE, message),
+        "text/plain",
+      );
   },
 
   __diag__checkSettingsParsing(app) {
@@ -288,6 +295,10 @@
     return `### ${title}\n${content}---\n\n`;
   },
 
+  _stringifyAlertMessage(title, message) {
+    return `=== ${title} ===\n\n${message}\n`;
+  },
+
   /**
    * Central execution function of this plugin
    * */
@@ -298,17 +309,28 @@
       if(this._getSettingValue(app, 'WARN_ON_DUPLICATE_TITLES')) {
         const dupSections = sections.filter(sec => sec.heading != null && sec.heading.text.length > 0 && sec.index != null);
         if(dupSections.length > 0) {
-          const response = await app.alert(
-            this.constants.messages.ERROR_DUPLICATE_SECTION_BODY.replace(
+          const message = this.constants.messages.ERROR_DUPLICATE_SECTION_BODY.replace(
               '$1', 
-              dupSections.reduce((text, sec, index) => `${text}\n${index+1}.  '${sec.heading.text}',  H${sec.heading.level},  ${sec.index}`, '')
-            ),
+              dupSections.reduce((text, sec, index) => `${text}\n${index+1}.  '${sec.heading.text}',  H${sec.heading.level},  ${sec.index}`, ''),
+            );
+          const response = await app.alert(
+            message,
             {
               preface: this.constants.messages.ERROR_DUPLICATE_SECTION_TITLE,
               primaryAction: { label: "ABORT", icon: "back_hand" },
-              actions: [{ icon: "arrow_forward", label: "PROCEED", value: 'PROCEED' }],
+              actions: [
+                { icon: "arrow_forward", label: "PROCEED", value: "PROCEED" },
+                { icon: "content_copy", label: "COPY & ABORT", value: "COPY" },
+              ],
             });
           if(response === -1) return;
+          else if(response === "COPY") {
+            await app.writeClipboardData(
+              this._stringifyAlertMessage(this.constants.messages.ERROR_DUPLICATE_SECTION_TITLE, message),
+              "text/plain",
+            );
+            return;
+          }
         }
       }
 
@@ -319,20 +341,31 @@
           && this.constants._.INVALID_SECTION_TITLE_CHARS.find(ch => sec.heading.text.includes(ch))
         );
         if(offendingSections.length > 0) {
-          const response = await app.alert(
-            this.constants.messages.ERROR_OFFENDING_SECTION_BODY.replace(
+          const message = this.constants.messages.ERROR_OFFENDING_SECTION_BODY.replace(
               '$1', 
               offendingSections.reduce((text, sec, index) => {
                 const chars = this.constants._.INVALID_SECTION_TITLE_CHARS.filter(ch => sec.heading.text.includes(ch)).join(' ');
                 return `${text}\n${index+1}.  '${sec.heading.text}',  H${sec.heading.level},  ${chars} (${chars.length})`
               }, ''),
-            ),
+            );
+          const response = await app.alert(
+            message,
             {
               preface: this.constants.messages.ERROR_OFFENDING_SECTION_TITLE,
               primaryAction: { label: "ABORT", icon: "back_hand" },
-              actions: [{ icon: "arrow_forward", label: "PROCEED", value: 'PROCEED' }],
+              actions: [
+                { icon: "arrow_forward", label: "PROCEED", value: "PROCEED" },
+                { icon: "content_copy", label: "COPY & ABORT", value: "COPY" },
+              ],
             });
           if(response === -1) return;
+          else if(response === "COPY") {
+            await app.writeClipboardData(
+              this._stringifyAlertMessage(this.constants.messages.ERROR_OFFENDING_SECTION_TITLE, message),
+              "text/plain",
+            );
+            return;
+          }
         }
       }
 

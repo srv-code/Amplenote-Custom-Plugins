@@ -269,13 +269,16 @@
   noteOption: {
     'Alert': {
       check(app) {
-        return false;
+        return true;
       },
       async run(app, noteUUID) {
         const response = await app.alert('Message', {
           preface: 'Error: Duplicate Section Titles',
-          primaryAction: { label: "ABORT", icon: "back_hand" },
-          actions: [{ icon: "arrow_forward", label: "PROCEED" }],
+          primaryAction: { icon: "back_hand", label: "ABORT", value: "ABORT" },
+          actions: [
+            { icon: "arrow_forward", label: "PROCEED", value: "PROCEED" },
+            { icon: "content_copy", label: "COPY", value: "COPY" },
+          ],
         });
         console.log('alert response', response);
       },
