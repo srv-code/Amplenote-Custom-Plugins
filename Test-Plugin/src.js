@@ -267,6 +267,20 @@
   },
   
   noteOption: {
+    'Alert': {
+      check(app) {
+        return false;
+      },
+      async run(app, noteUUID) {
+        const response = await app.alert('Message', {
+          preface: 'Error: Duplicate Section Titles',
+          primaryAction: { label: "ABORT", icon: "back_hand" },
+          actions: [{ icon: "arrow_forward", label: "PROCEED" }],
+        });
+        console.log('alert response', response);
+      },
+    },
+
     'New TOC': {
       check(app) {
         // const val = app.settings[settingName];
