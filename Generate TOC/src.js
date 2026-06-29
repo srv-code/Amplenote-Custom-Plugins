@@ -344,7 +344,7 @@
      * If the TOC section is present (checks only for the first occurrence), it updates in the existing section inline. 
      * */
     async run(app, noteUUID) {
-      this._exec(app, noteUUID, false);
+      await this._exec(app, noteUUID, false);
     },
   },
 
