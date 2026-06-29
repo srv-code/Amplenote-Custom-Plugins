@@ -269,7 +269,7 @@
   noteOption: {
     'Alert': {
       check(app) {
-        return true;
+        return false;
       },
       async run(app, noteUUID) {
         const response = await app.alert('Message', {
