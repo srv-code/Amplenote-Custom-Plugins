@@ -69,6 +69,9 @@
       BULLET_H1_CHAR: '•',
       BULLET_H2_CHAR: '‣',
       BULLET_H3_CHAR: '◦',
+
+      /** Text color for the last update message */
+      LAST_UPDATE_COLOR: '#777879',
     },
   },
 
@@ -193,26 +196,34 @@
   },
 
   _getNextIndex(index, level, unordered) {
+    console.groupCollapsed('_getNextIndex', { index, level, unordered });
+
     if(level === 1) {
       if(unordered) return this.constants._.BULLET_H1_CHAR;
-      if(index[level] === null) index[level] = 1;
-      else index[level] += 1;
+      if(index[level] === null) index[level] = '1';
+      else index[level] = `${parseInt(index[level].trim()) + 1}`;
+      index[level] = index[level].padStart(2);
 
       index[2] = null;
       index[3] = null;
     } else if(level === 2) {
       if(unordered) return this.constants._.BULLET_H2_CHAR;
       if(index[level] === null) index[level] = 'a';
-      else index[level] = this._nextAlphabet(index[level]);
+      else index[level] = this._nextAlphabet(index[level].trim());
+      index[level] = index[level].padStart(2);
 
       index[3] = null;
     } else if(level === 3) {
       if(unordered) return this.constants._.BULLET_H3_CHAR;
       if(index[level] === null) index[level] = 'i';
-      else index[level] = this._nextRoman(index[level]);
-    } else throw Error('Invalid level');
+      else index[level] = this._nextRoman(index[level].trim());
+      index[level] = index[level].padStart(6);
+    } else throw Error(`Invalid level specified: ${level}.`);
 
-    return `${index[level].toString().padStart(3)}.`;
+    const retval = `${index[level]}.`;
+    console.log('return', retval);
+    console.groupEnd();
+    return retval;
   },
 
   _getLastUpdateMessage(date) {
@@ -225,10 +236,12 @@
         minute: "2-digit",
         hour12: true,
       }).format(new Date());
-    return `*<mark style="color:#777879;">Last updated: ${datetime}<!-- {"cycleColor":"44"} --></mark>*\n`
+    return `*<mark style="color:${this.constants._.LAST_UPDATE_COLOR};">Last updated: ${datetime}<!-- {"cycleColor":"44"} --></mark>*\n`
   },
 
   _generateTOCFromSections(noteUUID, title, sections, considerHeaderBreaks, unordered, hideLastUpdateMessage, insertOnly = false) {
+    console.groupCollapsed('_generateTOCFromSections', { noteUUID, title, sections, considerHeaderBreaks, unordered, hideLastUpdateMessage, insertOnly });
+    
     let content = hideLastUpdateMessage ? '' : this._getLastUpdateMessage(new Date());
     const indexes = { 1: null, 2: null, 3: null };
     let sectionIndex = 0;
@@ -239,15 +252,24 @@
       const isTOC = insertOnly ? false : this._isTOCHeader(heading, title);
       if(!!heading && !!heading.text.trim() && (!isTOC || (isTOC && !!section))) {
         const headingLevel = considerHeaderBreaks ? (sectionIndex > 0 && sections[sectionIndex-1].heading === null ? 1 : heading.level) : heading.level;
-        content += '>.  ' + '    '.repeat(headingLevel-1) + `${this._getNextIndex(indexes, headingLevel, unordered)}  [${heading.text.trim()}]`;
-        if(this.constants._.INVALID_SECTION_TITLE_CHARS.find(ch => heading.anchor.includes(ch))) content += `(#${heading.anchor})`;
-        else content += `(https://www.amplenote.com/notes/${noteUUID}#${heading.anchor})`;
-        content += '\n>\n';
+        let line = '>.  ' + '    '.repeat(headingLevel-1) + `${this._getNextIndex(indexes, headingLevel, unordered)}  [${heading.text.trim()}]`;
+        if(this.constants._.INVALID_SECTION_TITLE_CHARS.find(ch => heading.anchor.includes(ch))) line += `(#${heading.anchor})`;
+        else line += `(https://www.amplenote.com/notes/${noteUUID}#${heading.anchor})`;
+        line += '\n>\n';
+        console.info('  >> line:: %O (H%d)', line, heading.level);
+        content += line;
       }
-      if(!section && isTOC) section = { heading, index };
+      if(!section && isTOC) {
+        section = { heading, index };
+        console.info('  >> found section::', section);
+      }
       sectionIndex++;
     }
-    return { section, content };
+
+    const retval = { section, content };
+    console.log('return', retval);
+    console.groupEnd();
+    return retval;
   },
 
   _getSettingValue(app, settingKey) {
@@ -262,23 +284,27 @@
   },
 
   async _handleError(app, error) {
+    console.groupCollapsed('_handleError', { error });
     let message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
-    console.error("Plugin Error: %O\n%O", message, error?.stack ?? error);
+    console.error("Error Message: %O\n%O", message, error?.stack ?? error);
     message = this.constants.messages.ERROR_INTERNAL_BODY.replace('$1', message);
     const response = await app.alert(message, {
       preface: this.constants.messages.ERROR_INTERNAL_TITLE, 
       primaryAction: { label: "ABORT", icon: "back_hand" },
       actions: [{ icon: "content_copy", label: "COPY", value: "COPY" }],
     });
+    console.log('Alert response for error:', response === -1 ? 'ABORT' : response);
+
     if(response === "COPY") 
       await app.writeClipboardData(
         this._stringifyAlertMessage(this.constants.messages.ERROR_INTERNAL_TITLE, message),
         "text/plain",
       );
+    console.groupEnd();
   },
 
   __diag__checkSettingsParsing(app) {
-    console.group('__diagnostics__checkSettingsParsing');
+    console.groupCollapsed('__diag__checkSettingsParsing');
     console.log('Settings', app.settings);
     console.log('Parsed', {
       TITLE: this._getSettingValue(app, 'TITLE'),
@@ -304,11 +330,16 @@
    * */
   async _exec(app, noteUUID, insertOnly = false) {
     try {
-      // this.__diag__checkSettingsParsing(app);
+      console.groupCollapsed('_exec', { noteUUID, insertOnly });
+
+      this.__diag__checkSettingsParsing(app);
       const sections = await app.getNoteSections({ uuid: noteUUID });
+      console.log('Sections', sections);
+
       if(this._getSettingValue(app, 'WARN_ON_DUPLICATE_TITLES')) {
         const dupSections = sections.filter(sec => sec.heading != null && sec.heading.text.length > 0 && sec.index != null);
         if(dupSections.length > 0) {
+          console.log('Duplicate Sections', dupSections);
           const message = this.constants.messages.ERROR_DUPLICATE_SECTION_BODY.replace(
               '$1', 
               dupSections.reduce((text, sec, index) => `${text}\n${index+1}.  '${sec.heading.text}',  H${sec.heading.level},  ${sec.index}`, ''),
@@ -323,6 +354,8 @@
                 { icon: "content_copy", label: "COPY & ABORT", value: "COPY" },
               ],
             });
+          console.log('Alert response for duplicate sections:', response === -1 ? 'ABORT' : response);
+
           if(response === -1) return;
           else if(response === "COPY") {
             await app.writeClipboardData(
@@ -340,6 +373,7 @@
           && sec.heading.text.length > 0
           && this.constants._.INVALID_SECTION_TITLE_CHARS.find(ch => sec.heading.text.includes(ch))
         );
+        console.log('Offending Sections', offendingSections);
         if(offendingSections.length > 0) {
           const message = this.constants.messages.ERROR_OFFENDING_SECTION_BODY.replace(
               '$1', 
@@ -358,6 +392,8 @@
                 { icon: "content_copy", label: "COPY & ABORT", value: "COPY" },
               ],
             });
+          console.log('Alert response for offending sections:', response === -1 ? 'ABORT' : response);
+     
           if(response === -1) return;
           else if(response === "COPY") {
             await app.writeClipboardData(
@@ -381,14 +417,24 @@
       );
 
       if(insertOnly) {
+        console.log('Inserting directly at cursor position...');
         await app.context.replaceSelection(this._getTOCSection(title, content));
+        console.log('OK');
         return;
       }
 
-      if(section) await app.replaceNoteContent({ uuid: noteUUID }, content, { section });
-      else await app.insertNoteContent({ uuid: noteUUID }, this._getTOCSection(title, content));
+      if(section) {
+        console.log('Updating existing section...');
+        await app.replaceNoteContent({ uuid: noteUUID }, content, { section });
+      } else {
+        console.log('Inserting new section...');
+        await app.insertNoteContent({ uuid: noteUUID }, this._getTOCSection(title, content));
+      }
+      console.log('OK');
     } catch (error) {
       this._handleError(app, error);
+    } finally {
+      console.groupEnd();
     }
   },
 
@@ -399,7 +445,9 @@
      * If the TOC section is present (checks only for the first occurrence), it updates in the existing section inline. 
      * */
     async run(app, noteUUID) {
+      console.groupCollapsed('TOC plugin | running from noteOption', { noteUUID });
       await this._exec(app, noteUUID, false);
+      console.groupEnd();
     },
   },
 
@@ -410,7 +458,9 @@
      * */
     'Insert TOC': {
       async run(app) {
+        console.groupCollapsed('TOC plugin | running from insertText', { noteUUID: app.context.noteUUID });
         await this._exec(app, app.context.noteUUID, true);
+        console.groupEnd();
       },
     },
   },
