@@ -52,20 +52,28 @@
     messages: {
       ERROR_INVALID_TITLE_SETTING_VALUE: 'Invalid value provided for "$1". Please remove the following characters: $2',
       ERROR_INVALID_BOOLEAN_SETTING: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
-      ERROR_DUPLICATE_SECTION_TITLE: 'Error: Duplicate Section Titles',
+
+      ERROR_DUPLICATE_SECTION_TITLE: '❌ Error: Duplicate Section Titles',
       ERROR_DUPLICATE_SECTION_BODY: 'Below sections have duplicate titles.\n' 
             + '(Hint: Fix them either by changing to a different title or pad them using spaces. '
             + 'Creating TOC now will result in ambiguous linkage.)\n\n' 
             + '-- Section Title,  Header Level,  Instance Count --\n' 
             + '$1\n',
-      ERROR_OFFENDING_SECTION_TITLE: 'Error: Problematic Section Titles',
+
+      ERROR_OFFENDING_SECTION_TITLE: '❌ Error: Problematic Section Titles',
       ERROR_OFFENDING_SECTION_BODY: 'Below sections have problematic titles.\n' 
             + '(Hint: Fix them by eliminating the offending characters from their titles. ' 
             + 'Creating TOC now will result in broken linkage.)\n\n' 
             + '-- Section Title,  Header Level, Offending Character(s) and Count --\n'
             + '$1\n',
-      ERROR_INTERNAL_TITLE: 'Internal Error Occurred',
+
+      ERROR_INTERNAL_TITLE: '❌ Internal Error Occurred',
       ERROR_INTERNAL_BODY: 'Something unexpected happened:\n$1\n',
+
+      /** Operation success messages */
+      OPERATION_SUCCESS_TITLE: '✅ Operation Successful',
+      INSERTED_NEW_TOC_SECTION_BODY: 'Inserted new TOC section.',
+      UPDATED_EXISTING_TOC_SECTION_BODY: 'Updated existing TOC section.',
     },
     _: {
       /** Offending characters are for constructing section titles. */
@@ -379,9 +387,9 @@
   /**
    * Central execution function of this plugin
    * */
-  async _exec(app, noteUUID, insertOnly = false) {
+  async _exec(app, noteUUID, insertOnly = false, showAlertOnSuccess = false) {
     try {
-      console.groupCollapsed('_exec', { noteUUID, insertOnly });
+      console.groupCollapsed('_exec', { noteUUID, insertOnly, showAlertOnSuccess });
 
       this.__diag__checkSettingsParsing(app);
       const sections = await app.getNoteSections({ uuid: noteUUID });
@@ -484,10 +492,19 @@
       if(section) {
         console.log('Updating existing section...');
         await app.replaceNoteContent({ uuid: noteUUID }, content, { section });
+        if(showAlertOnSuccess) 
+          await app.alert(this.constants.messages.UPDATED_EXISTING_TOC_SECTION_BODY, {
+            preface: this.constants.messages.OPERATION_SUCCESS_TITLE, 
+          });
       } else {
         console.log('Inserting new section...');
         await app.insertNoteContent({ uuid: noteUUID }, this._getTOCSection(title, content));
+        if(showAlertOnSuccess)
+          await app.alert(this.constants.messages.INSERTED_NEW_TOC_SECTION_BODY, {
+            preface: this.constants.messages.OPERATION_SUCCESS_TITLE, 
+          });
       }
+
       console.log('OK');
     } catch (error) {
       this._handleError(app, error);
@@ -495,6 +512,8 @@
       console.groupEnd();
     }
   },
+
+  /****** EXECUTION POINTS ******/
 
   noteOption: {
     /**
@@ -504,22 +523,41 @@
      * If the TOC section is present (checks only for the first occurrence), 
      * it updates in the existing section inline. 
      * */
-    async run(app, noteUUID) {
-      console.groupCollapsed('TOC plugin | running from noteOption', { noteUUID });
-      await this._exec(app, noteUUID, false);
-      console.groupEnd();
+    'Generate': {
+      async run(app, noteUUID) {
+        console.groupCollapsed('TOC plugin | running from `noteOption`', { noteUUID });
+        await this._exec(app, noteUUID);
+        console.groupEnd();
+      },
+    },
+  },
+
+  appOption: {
+    /**
+     * Same as in `noteOption`. 
+     * This is only useful when the note is too big and is scrolled in the 
+     * middle and the note option ellipsis is not easily accessible. 
+     * */
+    'Generate for this note': {
+      async run(app) {
+        const noteUUID = app.context.url.substring(app.context.url.lastIndexOf('/') + 1);
+        console.groupCollapsed('TOC plugin | running from `appOption`', { noteUUID });
+        await this._exec(app, noteUUID, false, true);
+        console.groupEnd();
+      },
     },
   },
 
   insertText: {
-    /** 
+    /**
      * This implementation doesn't check for any existing TOC headers.
      * Rather, it generates and directly inserts the TOC at the cursor position. 
      * */
-    'Insert TOC': {
+    'Insert Here': {
       async run(app) {
-        console.groupCollapsed('TOC plugin | running from insertText', { noteUUID: app.context.noteUUID });
-        await this._exec(app, app.context.noteUUID, true);
+        const { noteUUID } = app.context;
+        console.groupCollapsed('TOC plugin | running from `insertText`', { noteUUID });
+        await this._exec(app, noteUUID, true);
         console.groupEnd();
       },
     },
