@@ -76,6 +76,7 @@
   },
 
   validateSettings(app, settings) {
+    console.groupCollapsed('validateSettings', { settings });
     const booleanRegex = /y|n/gi;
     const errors = [];
     const exceptionList = [];
@@ -103,6 +104,9 @@
       }
     }
     
+    console.log('Errors', errors);
+    console.groupEnd();
+
     if(errors.length === 0) return false;
     return errors;
   },
@@ -285,9 +289,11 @@
 
   async _handleError(app, error) {
     console.groupCollapsed('_handleError', { error });
+
     let message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
     console.error("Error Message: %O\n%O", message, error?.stack ?? error);
     message = this.constants.messages.ERROR_INTERNAL_BODY.replace('$1', message);
+    
     const response = await app.alert(message, {
       preface: this.constants.messages.ERROR_INTERNAL_TITLE, 
       primaryAction: { label: "ABORT", icon: "back_hand" },
@@ -300,6 +306,7 @@
         this._stringifyAlertMessage(this.constants.messages.ERROR_INTERNAL_TITLE, message),
         "text/plain",
       );
+
     console.groupEnd();
   },
 
