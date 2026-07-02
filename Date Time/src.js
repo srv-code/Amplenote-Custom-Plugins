@@ -5,8 +5,9 @@
       ENABLED_EXPERIMENTS: 'Enable experimental features? (y/n | default: n)',
     },
     messages: {
-      INVALID_SETTING_ERROR: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
-      UNHANDLED_ERROR: 'Something went wrong!\nPlease refer the console logs for the technical details and inform the developer.',
+      ERROR_INVALID_SETTING_BODY: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
+      ERROR_INTERNAL_TITLE: 'Internal Error Occurred',
+      ERROR_INTERNAL_BODY: 'Something unexpected happened:\n$1\n',
     },
   },
 
@@ -15,16 +16,28 @@
     const errors = [];
     for(const [name, value] of Object.entries(settings)) {
       if(!booleanRegex.test(value.trim()))
-        errors.push(this.constants.messages.INVALID_SETTING_ERROR.replace('$1', name));
+        errors.push(this.constants.messages.ERROR_INVALID_SETTING_BODY.replace('$1', name));
     }
     if(errors.length === 0) return false;
     return errors;
   },
 
-  _handleError(app, error) {
-    const message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
+  async _handleError(app, error) {
+    let message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
     console.error("Plugin Error: %O\n%O", message, error?.stack ?? error);
-    app.alert(this.constants.messages.UNHANDLED_ERROR);
+    message = this.constants.messages.ERROR_INTERNAL_BODY.replace('$1', message);
+    
+    const response = await app.alert(message, {
+      preface: this.constants.messages.ERROR_INTERNAL_TITLE, 
+      primaryAction: { label: "ABORT", icon: "back_hand" },
+      actions: [{ icon: "content_copy", label: "COPY", value: "COPY" }],
+    });
+
+    if(response === "COPY") 
+      await app.writeClipboardData(
+        this._stringifyAlertMessage(this.constants.messages.ERROR_INTERNAL_TITLE, message),
+        "text/plain",
+      );
   },
 
   _getSettingValue(app, settingName, type = "string", defaultValue = null) {
@@ -42,13 +55,35 @@
   },
 
   _get(what, now = new Date()) {
-    if(what === 'date') 
+    /* Made obsolete */
+    if(what === 'date-OLD') 
       return new Intl.DateTimeFormat("en-US", {
           weekday: "short",
           day: "2-digit",
           month: "short",
           year: "numeric"
         }).format(now);
+
+
+    /* Generated using Claude ✨ */
+    if(what === 'date') {
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      const dayName = days[now.getDay()];
+      const dayNum = now.getDate();
+      const monthName = months[now.getMonth()];
+      const year = now.getFullYear();
+      
+      const suffix = 
+        dayNum % 10 === 1 && dayNum !== 11 ? 'st' :
+        dayNum % 10 === 2 && dayNum !== 12 ? 'nd' :
+        dayNum % 10 === 3 && dayNum !== 13 ? 'rd' :
+        'th';
+      
+      return `${dayName}, ${dayNum}${suffix} ${monthName} ${year}`;
+    }
+
 
     if(what === 'yesterday') {
       const yesterday = new Date(now);
@@ -64,9 +99,10 @@
     
     if(what === 'time') 
       return new Intl.DateTimeFormat("en-US", {
-        hour: "2-digit",
+        // hour: "2-digit",
+        hour: "numeric",
         minute: "2-digit",
-        hour12: true
+        hour12: true,
       }).format(now);
 
     if(what === 'datetime')
@@ -101,12 +137,7 @@
       }
     },
 
-    // EXPERIMENTAL FEATURE //
     today: {
-      check(app) {
-        return this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
-      },
-
       run(app) {
         try {
           return this._get('date');
@@ -117,12 +148,7 @@
       }
     },
 
-    // EXPERIMENTAL FEATURE //
     yesterday: {
-      check(app) {
-        return this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
-      },
-
       run(app) {
         try {
           return this._get('yesterday');
@@ -133,12 +159,7 @@
       }
     },
 
-    // EXPERIMENTAL FEATURE //
     tomorrow: {
-      check(app) {
-        return this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
-      },
-
       run(app) {
         try {
           return this._get('tomorrow');
@@ -160,12 +181,7 @@
       }
     },
     
-    // EXPERIMENTAL FEATURE //
     now: {
-      check(app) {
-        return this._getSettingValue(app, this.constants.settings.ENABLED_EXPERIMENTS, "boolean");
-      },
-
       run(app) {
         try {
           return this._get('time');
