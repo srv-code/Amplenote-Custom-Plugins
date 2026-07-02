@@ -467,5 +467,75 @@
         return 'ok';
       },
     },
+
+    '->': {
+      check() {
+        return true;
+      },
+      
+      async run(app) {
+        return '→';
+      },
+    },
+
+    '<-': {
+      check() {
+        return true;
+      },
+      
+      async run(app) {
+        return '←';
+      },
+    },
+
+    '--': {
+      check() {
+        return true;
+      },
+      
+      async run(app) {
+        return '－';
+      },
+    },
+
+    '^^': {
+      check() {
+        return true;
+      },
+      
+      async run(app) {
+        return '↓';
+      },
+    },
+
+    'vv': {
+      check() {
+        return true;
+      },
+      
+      async run(app) {
+        return '↓';
+      },
+    },
+
+    '<->': {
+      check() {
+        return true;
+      },
+      
+      async run(app) {
+        return '↔';
+      },
+    },
+
+     '^-v': {
+      check() {
+        return true;
+      },
+      
+      async run(app) {
+        return '↕';
+      },
+    },
   },
 }
