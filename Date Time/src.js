@@ -99,7 +99,7 @@
     
     if(what === 'time') 
       return new Intl.DateTimeFormat("en-US", {
-        hour: "numeric", // "2-digit",
+        hour: "2-digit",
         minute: "2-digit",
         hour12: true,
       }).format(now);
