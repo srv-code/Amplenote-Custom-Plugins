@@ -1,9 +1,9 @@
 ---
 title: Date/Time
 uuid: 12ce1db8-5b4b-11f1-8ca0-9176b83ee4f6
-version: 350
+version: 358
 created: '2026-05-29T16:12:21+05:30'
-updated: '2026-07-03T12:40:27+05:30'
+updated: '2026-07-03T14:10:23+05:30'
 tags:
   - '-/tech/app/amplenote/plugin'
 ---
@@ -24,9 +24,9 @@ tags:
     The format of choices are: \
     \- For date: `ddd, MON DD, YYYY` (e.g. *Fri, Jul 03, 2026*)
 
-    \- For time: `HH:MM AM/PM (HH in 12-hours format)` (e.g. *4:45 PM*) (uses current locale)
+    \- For time: `HH:MM AM/PM (HH in 12-hours format)` (e.g. *04:45 PM*) (uses current locale)
 
-    \- For datetime: `ddd, MON DD, YYYY at HH:MM AM/PM (HH in 12-hours format)` (e,.g. Fri, Jul 03, 2026 *at 4:45 PM*) (uses current locale)
+    \- For datetime: `ddd, MON DD, YYYY at HH:MM AM/PM (HH in 12-hours format)` (e,.g. *Fri, Jul 03, 2026 at 04:45 PM*) (uses current locale)
 
     \- For timestamp: `DD/MM/YYYY, HH:MM:SS (HH in 24-hours format)` (e.g. *29/05/2026, 16:46:08*) (uses current locale)\
     \
