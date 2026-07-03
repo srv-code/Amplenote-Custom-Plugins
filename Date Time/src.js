@@ -55,8 +55,7 @@
   },
 
   _get(what, now = new Date()) {
-    /* Made obsolete */
-    if(what === 'date-OLD') 
+    if(what === 'date') 
       return new Intl.DateTimeFormat("en-US", {
           weekday: "short",
           day: "2-digit",
@@ -66,7 +65,8 @@
 
 
     /* Generated using Claude ✨ */
-    if(what === 'date') {
+    /* Made obsolete */
+    if(what === 'date-new') {
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       
@@ -99,8 +99,7 @@
     
     if(what === 'time') 
       return new Intl.DateTimeFormat("en-US", {
-        // hour: "2-digit",
-        hour: "numeric",
+        hour: "numeric", // "2-digit",
         minute: "2-digit",
         hour12: true,
       }).format(now);
@@ -130,6 +129,17 @@
       run(app) {
         try {
           return this._get('date');
+        } catch (error) {
+          this._handleError(app, error);
+          return '';
+        }
+      }
+    },
+    
+    'date-new': {
+      run(app) {
+        try {
+          return this._get('date-new');
         } catch (error) {
           this._handleError(app, error);
           return '';
