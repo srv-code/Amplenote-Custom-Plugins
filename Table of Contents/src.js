@@ -515,51 +515,45 @@
 
   /****** EXECUTION POINTS ******/
 
+  /**
+   * This is the main trigger option of the plugin. 
+   * It first checks for the presence of the TOC. 
+   * If not present, it simply attaches at the top of the note content. 
+   * If the TOC section is present (checks only for the first occurrence), 
+   * it updates in the existing section inline. 
+   * */
   noteOption: {
-    /**
-     * This is the main trigger option of the plugin. 
-     * It first checks for the presence of the TOC. 
-     * If not present, it simply attaches at the top of the note content. 
-     * If the TOC section is present (checks only for the first occurrence), 
-     * it updates in the existing section inline. 
-     * */
-    'Generate': {
-      async run(app, noteUUID) {
-        console.groupCollapsed('TOC plugin | running from `noteOption`', { noteUUID });
-        await this._exec(app, noteUUID);
-        console.groupEnd();
-      },
+    async run(app, noteUUID) {
+      console.groupCollapsed('TOC plugin | running from `noteOption`', { noteUUID });
+      await this._exec(app, noteUUID);
+      console.groupEnd();
     },
   },
 
+  /**
+   * Same as in `noteOption`. 
+   * This is only useful when the note is too big and is scrolled in the 
+   * middle and the note option ellipsis is not easily accessible. 
+   * */
   appOption: {
-    /**
-     * Same as in `noteOption`. 
-     * This is only useful when the note is too big and is scrolled in the 
-     * middle and the note option ellipsis is not easily accessible. 
-     * */
-    'Generate for this note': {
-      async run(app) {
-        const noteUUID = app.context.url.substring(app.context.url.lastIndexOf('/') + 1);
-        console.groupCollapsed('TOC plugin | running from `appOption`', { noteUUID });
-        await this._exec(app, noteUUID, false, true);
-        console.groupEnd();
-      },
+    async run(app) {
+      const noteUUID = app.context.url.substring(app.context.url.lastIndexOf('/') + 1);
+      console.groupCollapsed('TOC plugin | running from `appOption`', { noteUUID });
+      await this._exec(app, noteUUID, false, true);
+      console.groupEnd();
     },
   },
 
+  /**
+   * This implementation doesn't check for any existing TOC headers.
+   * Rather, it generates and directly inserts the TOC at the cursor position. 
+   * */
   insertText: {
-    /**
-     * This implementation doesn't check for any existing TOC headers.
-     * Rather, it generates and directly inserts the TOC at the cursor position. 
-     * */
-    'Insert Here': {
-      async run(app) {
-        const { noteUUID } = app.context;
-        console.groupCollapsed('TOC plugin | running from `insertText`', { noteUUID });
-        await this._exec(app, noteUUID, true);
-        console.groupEnd();
-      },
+    async run(app) {
+      const { noteUUID } = app.context;
+      console.groupCollapsed('TOC plugin | running from `insertText`', { noteUUID });
+      await this._exec(app, noteUUID, true);
+      console.groupEnd();
     },
   },
 }
