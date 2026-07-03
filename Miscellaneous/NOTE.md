@@ -12,5 +12,5 @@ tags:
 |-|-|
 |NAME|Miscellaneous|
 |ICON|extension|
-|DESCRIPTION|For testing snippets of code of AN plugin.<br /><br />(*This plugin is maintained in a public GitHub* [*repo*](https://github.com/srv-code/Amplenote-Custom-Plugins/tree/main/Test-Plugin)*.)*|
+|DESCRIPTION|For testing snippets of code of AN plugin.<br /><br />(*This plugin is maintained in a public GitHub* [*repo*](https://github.com/srv-code/Amplenote-Custom-Plugins/tree/main/Miscellaneous)*.)*|
 |INSTRUCTIONS|Contains random, uncategorized plugin modules or functions.|

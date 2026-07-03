@@ -14,7 +14,7 @@ tags:
 |-|-|
 |NAME|Test Plugin 2|
 |ICON|auto_awesome|
-|DESCRIPTION|For testing snippets of code of AN plugin.<br /><br />(*This plugin is maintained in a public GitHub* [*repo*](https://github.com/srv-code/Amplenote-Custom-Plugins/tree/main/Test-Plugin)*.)*|
+|DESCRIPTION|For testing snippets of code of AN plugin.<br /><br />(*This plugin is maintained in a public GitHub* [*repo*](https://github.com/srv-code/Amplenote-Custom-Plugins/tree/main/Test%20Plugin)*.)*|
 |INSTRUCTIONS|*Nothing. Just execute for fun and learning.*|
 |SETTING|Message (string)|
 |SETTING|Enable? (y/n)|

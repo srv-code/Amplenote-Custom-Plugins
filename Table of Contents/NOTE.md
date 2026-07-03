@@ -14,7 +14,7 @@ tags:
 |Name|Table of Contents|
 |Icon|list_alt|
 |Description|A robust Table of Contents curated to my needs.|
-|Instructions|This is a complete overhaul of the public TOC plugin and is a [much safer][^1], [reliable][^2] and [superior][^3] one!<br />Adds TOC (Table of Contents) features BETTER than the official one.<br /><br />*(This plugin is maintained in a public GitHub* [*repo*](https://github.com/srv-code/Amplenote-Custom-Plugins/tree/main/Generate%20TOC)*.)*|
+|Instructions|This is a complete overhaul of the public TOC plugin and is a [much safer][^1], [reliable][^2] and [superior][^3] one!<br />Adds TOC (Table of Contents) features BETTER than the official one.<br /><br />*(This plugin is maintained in a public GitHub* [*repo*](https://github.com/srv-code/Amplenote-Custom-Plugins/tree/main/Table%20of%20Contents)*.)*|
 |Setting|Title (string \| default: TABLE OF CONTENTS)|
 |Setting|Consider Header Breaks (y/n \| default: y)|
 |Setting|Warn On Duplicate Titles (y/n \| default: y)|
