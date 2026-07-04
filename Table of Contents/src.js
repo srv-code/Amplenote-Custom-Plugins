@@ -482,30 +482,31 @@
         insertOnly,
       );
 
+      let result = null;
       if(insertOnly) {
         console.log('Inserting directly at cursor position...');
-        await app.context.replaceSelection(this._getTOCSection(title, content));
-        console.log('OK');
+        result = await app.context.replaceSelection(this._getTOCSection(title, content));
+        console.log('OK', { result });
         return;
-      }
-
-      if(section) {
-        console.log('Updating existing section...');
-        await app.replaceNoteContent({ uuid: noteUUID }, content, { section });
-        if(showAlertOnSuccess) 
-          await app.alert(this.constants.messages.UPDATED_EXISTING_TOC_SECTION_BODY, {
-            preface: this.constants.messages.OPERATION_SUCCESS_TITLE, 
-          });
       } else {
-        console.log('Inserting new section...');
-        await app.insertNoteContent({ uuid: noteUUID }, this._getTOCSection(title, content));
-        if(showAlertOnSuccess)
-          await app.alert(this.constants.messages.INSERTED_NEW_TOC_SECTION_BODY, {
-            preface: this.constants.messages.OPERATION_SUCCESS_TITLE, 
-          });
+        if(section) {
+          console.log('Updating existing section...');
+          result = await app.replaceNoteContent({ uuid: noteUUID }, content, { section });
+          if(showAlertOnSuccess) 
+            await app.alert(this.constants.messages.UPDATED_EXISTING_TOC_SECTION_BODY, {
+              preface: this.constants.messages.OPERATION_SUCCESS_TITLE, 
+            });
+        } else {
+          console.log('Inserting new section...');
+          result = await app.insertNoteContent({ uuid: noteUUID }, this._getTOCSection(title, content));
+          if(showAlertOnSuccess)
+            await app.alert(this.constants.messages.INSERTED_NEW_TOC_SECTION_BODY, {
+              preface: this.constants.messages.OPERATION_SUCCESS_TITLE, 
+            });
+        }
       }
 
-      console.log('OK');
+      console.log('OK', { result });
     } catch (error) {
       this._handleError(app, error);
     } finally {
