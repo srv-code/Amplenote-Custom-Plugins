@@ -57,15 +57,15 @@
       ERROR_DUPLICATE_SECTION_BODY: 'Below sections have duplicate titles.\n' 
             + '(Hint: Fix them either by changing to a different title or pad them using spaces. '
             + 'Creating TOC now will result in ambiguous linkage.)\n\n' 
-            + '-- Section Title,  Header Level,  Instance Count --\n' 
-            + '$1\n',
+            + 'Total count: $1\n'
+            + '$2\n',
 
       ERROR_OFFENDING_SECTION_TITLE: '❌ Error: Problematic Section Titles',
       ERROR_OFFENDING_SECTION_BODY: 'Below sections have problematic titles.\n' 
             + '(Hint: Fix them by eliminating the offending characters from their titles. ' 
             + 'Creating TOC now will result in broken linkage.)\n\n' 
-            + '-- Section Title,  Header Level, Offending Character(s) and Count --\n'
-            + '$1\n',
+            + 'Total count: $1\n'
+            + '$2\n',
 
       ERROR_NO_SECTIONS_FOUND_TITLE: '❌ Error: No Sections Found',
       ERROR_NO_SECTIONS_FOUND_BODY: 'No sections found in the note.\nPlease ensure that the note has at least one section with a heading.',
@@ -387,6 +387,16 @@
     return `=== ${title} ===\n\n${message}\n`;
   },
 
+  _getParentSection(sections, section) {
+    const index = sections.indexOf(section);
+    for(let i=index-1; i>=0; i--) {
+      if(sections[i].heading?.text.length > 0) {
+          return sections[i];
+      }
+    }
+    return null;
+  },
+
   /**
    * Central execution function of this plugin
    * */
@@ -417,15 +427,29 @@
 
         if(dupSections.length > 0) {
           console.log('Duplicate Sections', dupSections);
-          const message = this.constants.messages.ERROR_DUPLICATE_SECTION_BODY.replace(
-              '$1', 
-              dupSections.reduce((text, sec, index) => 
-                `${text}\n${index+1}.  '${sec.heading.text}',  H${sec.heading.level},  ${sec.index}`, 
-              ''),
-            );
-          const response = await app.alert(
-            message,
-            {
+          
+          let headers = '';
+          let serialNo = 1;
+          for(const index in dupSections) {
+            const section = dupSections[index];
+
+            let parent = this._getParentSection(sections, section); 
+            if(parent?.heading) parent = `'${parent.heading.text}' (H${parent.heading.level})\n`;
+            else parent = 'None';
+
+            headers += 
+              `\n-- ${serialNo++} --\n` + 
+              `  HEADER:  '${section.heading.text}' (H${section.heading.level})\n` + 
+              `  INSTANCE #:  ${section.index}\n` + 
+              `  PARENT HEADER:  ${parent}\n`;
+          }
+
+          const message =  this.constants.messages.ERROR_DUPLICATE_SECTION_BODY
+              .replace('$1', dupSections.length)
+              .replace('$2', headers)
+              .trim();
+
+          const response = await app.alert(message, {
               preface: this.constants.messages.ERROR_DUPLICATE_SECTION_TITLE,
               primaryAction: { label: "ABORT", icon: "back_hand" },
               actions: [
@@ -452,18 +476,36 @@
           && sec.heading.text.length > 0
           && this.constants._.INVALID_SECTION_TITLE_CHARS.find(ch => sec.heading.text.includes(ch))
         );
-        console.log('Offending Sections', offendingSections);
+
         if(offendingSections.length > 0) {
-          const message = this.constants.messages.ERROR_OFFENDING_SECTION_BODY.replace(
-              '$1', 
-              offendingSections.reduce((text, sec, index) => {
-                const chars = this.constants._.INVALID_SECTION_TITLE_CHARS.filter(ch => sec.heading.text.includes(ch)).join(' ');
-                return `${text}\n${index+1}.  '${sec.heading.text}',  H${sec.heading.level},  ${chars} (${chars.length})`
-              }, ''),
-            );
-          const response = await app.alert(
-            message,
-            {
+          console.log('Offending Sections', offendingSections);
+
+          let headers = '';
+          let serialNo = 1;
+          for(const index in offendingSections) {
+            const section = offendingSections[index];
+
+            let parent = this._getParentSection(sections, section); 
+            if(parent?.heading) parent = `'${parent.heading.text}' (H${parent.heading.level})\n`;
+            else parent = 'None';
+
+            const chars = this.constants._.INVALID_SECTION_TITLE_CHARS
+                .filter(ch => section.heading.text.includes(ch))
+                .join(' ');
+
+            headers += 
+              `\n-- ${serialNo++} --\n` + 
+              `  HEADER:  '${section.heading.text}' (H${section.heading.level})\n` + 
+              `  INVALID CHARACTERS:  ${chars} (${chars.length} nos.)\n` + 
+              `  PARENT HEADER:  ${parent}\n`;
+          }
+
+          const message = this.constants.messages.ERROR_OFFENDING_SECTION_BODY
+              .replace('$1', offendingSections.length)
+              .replace('$2', headers)
+              .trim();
+
+          const response = await app.alert(message, {
               preface: this.constants.messages.ERROR_OFFENDING_SECTION_TITLE,
               primaryAction: { label: "ABORT", icon: "back_hand" },
               actions: [
@@ -500,7 +542,6 @@
         console.log('Inserting directly at cursor position...');
         result = await app.context.replaceSelection(this._getTOCSection(title, content));
         console.log('OK', { result });
-        return;
       } else {
         if(section) {
           console.log('Updating existing section...');
