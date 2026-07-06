@@ -438,10 +438,10 @@
             else parent = 'None';
 
             headers += 
-              `\n-- ${serialNo++} --\n` + 
+              `\n~ ${serialNo++} ~\n` + 
               `  HEADER:  '${section.heading.text}' (H${section.heading.level})\n` + 
               `  INSTANCE #:  ${section.index}\n` + 
-              `  PARENT HEADER:  ${parent}\n`;
+              `  PARENT HEADER:  ${parent}`;
           }
 
           const message =  this.constants.messages.ERROR_DUPLICATE_SECTION_BODY
@@ -494,10 +494,10 @@
                 .join(' ');
 
             headers += 
-              `\n-- ${serialNo++} --\n` + 
+              `\n~ ${serialNo++} ~\n` + 
               `  HEADER:  '${section.heading.text}' (H${section.heading.level})\n` + 
               `  INVALID CHARACTERS:  ${chars} (${chars.length} nos.)\n` + 
-              `  PARENT HEADER:  ${parent}\n`;
+              `  PARENT HEADER:  ${parent}`;
           }
 
           const message = this.constants.messages.ERROR_OFFENDING_SECTION_BODY
