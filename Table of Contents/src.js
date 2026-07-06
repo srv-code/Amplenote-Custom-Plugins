@@ -67,6 +67,9 @@
             + '-- Section Title,  Header Level, Offending Character(s) and Count --\n'
             + '$1\n',
 
+      ERROR_NO_SECTIONS_FOUND_TITLE: '❌ Error: No Sections Found',
+      ERROR_NO_SECTIONS_FOUND_BODY: 'No sections found in the note.\nPlease ensure that the note has at least one section with a heading.',
+
       ERROR_INTERNAL_TITLE: '❌ Internal Error Occurred',
       ERROR_INTERNAL_BODY: 'Something unexpected happened:\n$1\n',
 
@@ -390,10 +393,20 @@
   async _exec(app, noteUUID, insertOnly = false, showAlertOnSuccess = false) {
     try {
       console.groupCollapsed('_exec', { noteUUID, insertOnly, showAlertOnSuccess });
+      if(!app || !noteUUID) throw Error('Invalid app or noteUUID specified');
 
       this.__diag__checkSettingsParsing(app);
       const sections = await app.getNoteSections({ uuid: noteUUID });
       console.log('Sections', sections);
+
+      if(sections.length === 0 || sections.every(sec => sec.heading === null || sec.heading.text.trim().length === 0)) {
+        console.log('No sections found');
+        await app.alert(this.constants.messages.ERROR_NO_SECTIONS_FOUND_BODY, {
+          preface: this.constants.messages.ERROR_NO_SECTIONS_FOUND_TITLE,
+          primaryAction: { label: "ABORT", icon: "back_hand" },
+        });
+        return;
+      }
 
       if(this._getSettingValue(app, 'WARN_ON_DUPLICATE_TITLES')) {
         const dupSections = sections.filter(sec => 
@@ -538,7 +551,7 @@
    * */
   appOption: {
     async run(app) {
-      const noteUUID = app.context.url.substring(app.context.url.lastIndexOf('/') + 1);
+      const noteUUID = app.context.url.split("/notes/")[1].split("?")[0];
       console.groupCollapsed('TOC plugin | running from `appOption`', { noteUUID });
       await this._exec(app, noteUUID, false, true);
       console.groupEnd();
