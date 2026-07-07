@@ -1,7 +1,7 @@
 // JavaScript
 {
   insertText: {
-    // Directional arrows 
+    /* Directional arrows */
     'arrow-right': {
       run(app) { return '→'; },
     },
