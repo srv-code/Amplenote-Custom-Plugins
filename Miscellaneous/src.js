@@ -1,7 +1,8 @@
 // JavaScript
 {
   insertText: {
-    'right-arrow': {
+    // Directional arrows 
+    'arrow-right': {
       run(app) { return '→'; },
     },
 
@@ -13,19 +14,19 @@
       run(app) { return '－'; },
     },
 
-    'up-arrow': {
+    'arrow-up': {
       run(app) { return '↑'; },
     },
 
-    'down-arrow': {
+    'arrow-down': {
       run(app) { return '↓'; },
     },
 
-    'horizontal-arrows': {
+    'arrow-horizontal': {
       run(app) { return '↔'; },
     },
 
-    'vertical-arrows': {
+    'arrow-vertical': {
       run(app) { return '↕'; },
     },
   },
