@@ -15,7 +15,9 @@
 
     'Capitalize': {
       async run(app, text) {
-        await app.context.replaceSelection(text.replace(/\b\w/g, (c) => c.toUpperCase()));
+        await app.context.replaceSelection(
+          text.replace(/[a-zA-Z]+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        );
       },
     },
 
