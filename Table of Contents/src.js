@@ -294,7 +294,6 @@
     const indexes = { 1: null, 2: null, 3: null };
     let sectionIndex = 0;
     let section = null;
-    let replaceEntireContent = false;
 
     for(const { heading, index } of sections) {
       const isTOC = insertOnly ? false : this._isTOCHeader(heading, title);
