@@ -591,8 +591,8 @@
    * */
   appOption: {
     async run(app) {
-      const noteUUID = app.context.url.split("/notes/")[1].split("?")[0];
-      console.groupCollapsed('TOC plugin | running from `appOption`', { noteUUID });
+      const noteUUID = app.context.url?.split?.("/notes/")?.[1]?.split?.("?")?.[0];
+      console.groupCollapsed('TOC plugin | running from `appOption`', { noteUUID, url: app.context.url });
       await this._exec(app, noteUUID, false, true);
       console.groupEnd();
     },
