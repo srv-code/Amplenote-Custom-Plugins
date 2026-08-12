@@ -628,7 +628,9 @@
     }
   },
 
-
+  /**
+   * Checks if the current URL is in the Notes section of the app.
+   */
   _checkIfInNotesSection(url) {
     console.log('TOC::_checkIfInNotesSection | url: %s', url);
     
