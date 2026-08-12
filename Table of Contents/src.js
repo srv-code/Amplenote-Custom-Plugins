@@ -73,6 +73,9 @@
       ERROR_INTERNAL_TITLE: '❌ Internal Error Occurred',
       ERROR_INTERNAL_BODY: 'Something unexpected happened:\n$1\n',
 
+      ERROR_INVALID_MODE_BODY: 'Please select the NOTES section to run this plugin.',
+      ERROR_INVALID_MODE_TITLE: '❌ Error: Invalid Mode',
+
       /** Operation success messages */
       OPERATION_SUCCESS_TITLE: '✅ Operation Successful',
       INSERTED_NEW_TOC_SECTION_BODY: 'Inserted new TOC section.',
@@ -93,6 +96,16 @@
 
       /** Tab character for indentation */
       TAB: '    ',
+
+      /** Regular expression for validating UUIDs */
+      UUID_REGEX: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+
+
+      /** List of invalid modes in the app i.e. the non-notes sections */
+      INVALID_MODES: [ "calendar", "tasks", "jots" ],
+
+      /** Base URL prefix for constructing section links */
+      BASE_URL_PREFIX: 'https://www.amplenote.com/notes',
     },
   },
 
@@ -102,6 +115,15 @@
     const errors = [];
     const exceptionList = [];
 
+    const {
+      settings: { TITLE },
+      _: { INVALID_SECTION_TITLE_CHARS },
+      messages: {
+        ERROR_INVALID_TITLE_SETTING_VALUE,
+        ERROR_INVALID_BOOLEAN_SETTING,
+      },
+    } = this.constants;
+
     for(const [name, value] of Object.entries(settings)) {
       if(exceptionList.includes(name)) continue;
 
@@ -110,17 +132,17 @@
 
       if(value?.length > 0) {
         if(setting.type === 'string') {
-          if(name === this.constants.settings.TITLE.label 
-            && !!this.constants._.INVALID_SECTION_TITLE_CHARS.find(ch => value.includes(ch))
+          if(name === TITLE.label 
+            && !!INVALID_SECTION_TITLE_CHARS.find(ch => value.includes(ch))
           )
             errors.push(
-              this.constants.messages.ERROR_INVALID_TITLE_SETTING_VALUE
+              ERROR_INVALID_TITLE_SETTING_VALUE
                 .replace('$1', name)
-                .replace('$2', this.constants._.INVALID_SECTION_TITLE_CHARS.join(' '))
+                .replace('$2', INVALID_SECTION_TITLE_CHARS.join(' '))
             );
         } else if(setting.type === 'boolean') {
           if(!booleanRegex.test(value.trim()))
-            errors.push(this.constants.messages.ERROR_INVALID_BOOLEAN_SETTING.replace('$1', name));
+            errors.push(ERROR_INVALID_BOOLEAN_SETTING.replace('$1', name));
         } else throw Error(`Setting type mismatched: ${setting.label} of type ${setting.type}`);
       }
     }
@@ -223,8 +245,14 @@
   _getNextIndex(index, level, unordered) {
     console.groupCollapsed('_getNextIndex', { index, level, unordered });
 
+    const {
+      BULLET_H1_CHAR,
+      BULLET_H2_CHAR,
+      BULLET_H3_CHAR,
+    } = this.constants._;
+
     if(level === 1) {
-      if(unordered) return this.constants._.BULLET_H1_CHAR;
+      if(unordered) return BULLET_H1_CHAR;
       if(index[level] === null) index[level] = '1';
       else index[level] = `${parseInt(index[level].trim()) + 1}`;
       index[level] = index[level].padStart(2);
@@ -232,14 +260,14 @@
       index[2] = null;
       index[3] = null;
     } else if(level === 2) {
-      if(unordered) return this.constants._.BULLET_H2_CHAR;
+      if(unordered) return BULLET_H2_CHAR;
       if(index[level] === null) index[level] = 'a';
       else index[level] = this._nextAlphabet(index[level].trim());
       index[level] = index[level].padStart(2);
 
       index[3] = null;
     } else if(level === 3) {
-      if(unordered) return this.constants._.BULLET_H3_CHAR;
+      if(unordered) return BULLET_H3_CHAR;
       if(index[level] === null) index[level] = 'i';
       else index[level] = this._nextRoman(index[level].trim());
       index[level] = index[level].padStart(6);
@@ -262,13 +290,12 @@
         hour12: true,
       }).format(new Date());
 
-    return `*<mark style="color:${
-        this.constants._.LAST_UPDATE_COLOR
-      };">Last updated: ${
-        datetime
-      }<!-- {"cycleColor": "${
-        this.constants._.LAST_UPDATE_COLOR_CYCLE
-      }"} --></mark>*\n`;
+    const { 
+      LAST_UPDATE_COLOR,
+      LAST_UPDATE_COLOR_CYCLE,
+    } = this.constants._;
+
+    return `*<mark style="color:${LAST_UPDATE_COLOR};">Last updated: ${datetime}<!-- {"cycleColor": "${LAST_UPDATE_COLOR_CYCLE}"} --></mark>*\n`;
   },
 
   _generateTOCFromSections(
@@ -295,6 +322,8 @@
     let sectionIndex = 0;
     let section = null;
 
+    const { TAB, INVALID_SECTION_TITLE_CHARS } = this.constants._;
+
     for(const { heading, index } of sections) {
       const isTOC = insertOnly ? false : this._isTOCHeader(heading, title);
       if(!!heading && !!heading.text.trim() && (!isTOC || (isTOC && !!section))) {
@@ -304,10 +333,10 @@
             : heading.level;
         let line = 
           '>.  ' 
-          + this.constants._.TAB.repeat(headingLevel-1) 
+          + TAB.repeat(headingLevel-1) 
           + `${this._getNextIndex(indexes, headingLevel, unordered)}  [${heading.text.trim()}]`;
 
-        if(this.constants._.INVALID_SECTION_TITLE_CHARS.find(ch => heading.anchor.includes(ch))) 
+        if(INVALID_SECTION_TITLE_CHARS.find(ch => heading.anchor.includes(ch))) 
           line += `(#${heading.anchor})`;
         else 
           line += `(https://www.amplenote.com/notes/${noteUUID}#${heading.anchor})`;
@@ -344,12 +373,14 @@
   async _handleError(app, error) {
     console.groupCollapsed('_handleError', { error });
 
+    const { ERROR_INTERNAL_BODY, ERROR_INTERNAL_TITLE } = this.constants.messages;
+
     let message = error && (error.message || error.toString()) ? error.message || error.toString() : "Unknown Error";
     console.error("Error Message: %O\n%O", message, error?.stack ?? error);
-    message = this.constants.messages.ERROR_INTERNAL_BODY.replace('$1', message);
+    message = ERROR_INTERNAL_BODY.replace('$1', message);
     
     const response = await app.alert(message, {
-      preface: this.constants.messages.ERROR_INTERNAL_TITLE, 
+      preface: ERROR_INTERNAL_TITLE, 
       primaryAction: { label: "ABORT", icon: "back_hand" },
       actions: [{ icon: "content_copy", label: "COPY", value: "COPY" }],
     });
@@ -357,7 +388,7 @@
 
     if(response === "COPY") 
       await app.writeClipboardData(
-        this._stringifyAlertMessage(this.constants.messages.ERROR_INTERNAL_TITLE, message),
+        this._stringifyAlertMessage(ERROR_INTERNAL_TITLE, message),
         "text/plain",
       );
 
@@ -402,7 +433,37 @@
   async _exec(app, noteUUID, insertOnly = false, showAlertOnSuccess = false) {
     try {
       console.groupCollapsed('_exec', { noteUUID, insertOnly, showAlertOnSuccess });
-      if(!app || !noteUUID) throw Error('Invalid app or noteUUID specified');
+
+      const {
+        _: {
+          INVALID_MODES,
+          UUID_REGEX,
+          INVALID_SECTION_TITLE_CHARS,
+        },
+        messages: {
+          ERROR_INVALID_MODE_BODY,
+          ERROR_INVALID_MODE_TITLE,
+          ERROR_NO_SECTIONS_FOUND_BODY,
+          ERROR_NO_SECTIONS_FOUND_TITLE,
+          ERROR_DUPLICATE_SECTION_BODY,
+          ERROR_DUPLICATE_SECTION_TITLE,
+          ERROR_OFFENDING_SECTION_BODY,
+          ERROR_OFFENDING_SECTION_TITLE,
+          UPDATED_EXISTING_TOC_SECTION_BODY,
+          OPERATION_SUCCESS_TITLE,
+          INSERTED_NEW_TOC_SECTION_BODY,
+        },
+      } = this.constants;
+
+      if(!app) throw Error('Invalid app object specified');
+      if(INVALID_MODES.includes(noteUUID)) {
+        await app.alert(ERROR_INVALID_MODE_BODY, {
+          preface: ERROR_INVALID_MODE_TITLE,
+          primaryAction: { label: "ABORT", icon: "back_hand" },
+        });
+        return;
+      }
+      if(!UUID_REGEX.test(noteUUID)) throw Error(`Invalid noteUUID specified: ${noteUUID}`);
 
       this.__diag__checkSettingsParsing(app);
       const sections = await app.getNoteSections({ uuid: noteUUID });
@@ -410,8 +471,8 @@
 
       if(sections.length === 0 || sections.every(sec => sec.heading === null || sec.heading.text.trim().length === 0)) {
         console.log('No sections found');
-        await app.alert(this.constants.messages.ERROR_NO_SECTIONS_FOUND_BODY, {
-          preface: this.constants.messages.ERROR_NO_SECTIONS_FOUND_TITLE,
+        await app.alert(ERROR_NO_SECTIONS_FOUND_BODY, {
+          preface: ERROR_NO_SECTIONS_FOUND_TITLE,
           primaryAction: { label: "ABORT", icon: "back_hand" },
         });
         return;
@@ -443,13 +504,13 @@
               `  PARENT HEADER:  ${parent}`;
           }
 
-          const message =  this.constants.messages.ERROR_DUPLICATE_SECTION_BODY
+          const message =  ERROR_DUPLICATE_SECTION_BODY
               .replace('$1', dupSections.length)
               .replace('$2', headers)
               .trim();
 
           const response = await app.alert(message, {
-              preface: this.constants.messages.ERROR_DUPLICATE_SECTION_TITLE,
+              preface: ERROR_DUPLICATE_SECTION_TITLE,
               primaryAction: { label: "ABORT", icon: "back_hand" },
               actions: [
                 { icon: "arrow_forward", label: "PROCEED", value: "PROCEED" },
@@ -461,7 +522,7 @@
           if(response === -1) return;
           else if(response === "COPY") {
             await app.writeClipboardData(
-              this._stringifyAlertMessage(this.constants.messages.ERROR_DUPLICATE_SECTION_TITLE, message),
+              this._stringifyAlertMessage(ERROR_DUPLICATE_SECTION_TITLE, message),
               "text/plain",
             );
             return;
@@ -473,7 +534,7 @@
         const offendingSections = sections.filter(sec => 
           sec.heading != null
           && sec.heading.text.length > 0
-          && this.constants._.INVALID_SECTION_TITLE_CHARS.find(ch => sec.heading.text.includes(ch))
+          && INVALID_SECTION_TITLE_CHARS.find(ch => sec.heading.text.includes(ch))
         );
 
         if(offendingSections.length > 0) {
@@ -488,7 +549,7 @@
             if(parent?.heading) parent = `'${parent.heading.text}' (H${parent.heading.level})\n`;
             else parent = 'None';
 
-            const chars = this.constants._.INVALID_SECTION_TITLE_CHARS
+            const chars = INVALID_SECTION_TITLE_CHARS
                 .filter(ch => section.heading.text.includes(ch))
                 .join(' ');
 
@@ -499,13 +560,13 @@
               `  PARENT HEADER:  ${parent}`;
           }
 
-          const message = this.constants.messages.ERROR_OFFENDING_SECTION_BODY
+          const message = ERROR_OFFENDING_SECTION_BODY
               .replace('$1', offendingSections.length)
               .replace('$2', headers)
               .trim();
 
           const response = await app.alert(message, {
-              preface: this.constants.messages.ERROR_OFFENDING_SECTION_TITLE,
+              preface: ERROR_OFFENDING_SECTION_TITLE,
               primaryAction: { label: "ABORT", icon: "back_hand" },
               actions: [
                 { icon: "arrow_forward", label: "PROCEED", value: "PROCEED" },
@@ -517,7 +578,7 @@
           if(response === -1) return;
           else if(response === "COPY") {
             await app.writeClipboardData(
-              this._stringifyAlertMessage(this.constants.messages.ERROR_OFFENDING_SECTION_TITLE, message),
+              this._stringifyAlertMessage(ERROR_OFFENDING_SECTION_TITLE, message),
               "text/plain",
             );
             return;
@@ -546,15 +607,15 @@
           console.log('Updating existing section...');
           result = await app.replaceNoteContent({ uuid: noteUUID }, content, { section });
           if(showAlertOnSuccess) 
-            await app.alert(this.constants.messages.UPDATED_EXISTING_TOC_SECTION_BODY, {
-              preface: this.constants.messages.OPERATION_SUCCESS_TITLE, 
+            await app.alert(UPDATED_EXISTING_TOC_SECTION_BODY, {
+              preface: OPERATION_SUCCESS_TITLE, 
             });
         } else {
           console.log('Inserting new section...');
           result = await app.insertNoteContent({ uuid: noteUUID }, this._getTOCSection(title, content));
           if(showAlertOnSuccess)
-            await app.alert(this.constants.messages.INSERTED_NEW_TOC_SECTION_BODY, {
-              preface: this.constants.messages.OPERATION_SUCCESS_TITLE, 
+            await app.alert(INSERTED_NEW_TOC_SECTION_BODY, {
+              preface: OPERATION_SUCCESS_TITLE, 
             });
         }
       }
@@ -567,6 +628,17 @@
     }
   },
 
+
+  _checkIfInNotesSection(url) {
+    console.log('TOC::_checkIfInNotesSection | url: %s', url);
+    
+    const { BASE_URL_PREFIX, INVALID_MODES } = this.constants._;
+    const invalidMode = INVALID_MODES.find(mode => url.startsWith(`${BASE_URL_PREFIX}/${mode}`));
+    console.log('TOC::_checkIfInNotesSection | invalidMode: %s', invalidMode);
+
+    return !invalidMode;
+  },
+
   /****** EXECUTION POINTS ******/
 
   /**
@@ -577,6 +649,10 @@
    * it updates in the existing section inline. 
    * */
   noteOption: {
+    check(app) {
+      return this._checkIfInNotesSection(app.context.url);
+    },
+    
     async run(app, noteUUID) {
       console.groupCollapsed('TOC plugin | running from `noteOption`', { noteUUID });
       await this._exec(app, noteUUID);
@@ -590,6 +666,10 @@
    * middle and the note option ellipsis is not easily accessible. 
    * */
   appOption: {
+    check(app) {
+      return this._checkIfInNotesSection(app.context.url);
+    },
+
     async run(app) {
       const noteUUID = app.context.url?.split?.("/notes/")?.[1]?.split?.("?")?.[0];
       console.groupCollapsed('TOC plugin | running from `appOption`', { noteUUID, url: app.context.url });
@@ -603,6 +683,10 @@
    * Rather, it generates and directly inserts the TOC at the cursor position. 
    * */
   insertText: {
+   check(app) {
+      return this._checkIfInNotesSection(app.context.url);
+    },
+
     async run(app) {
       const { noteUUID } = app.context;
       console.groupCollapsed('TOC plugin | running from `insertText`', { noteUUID });
