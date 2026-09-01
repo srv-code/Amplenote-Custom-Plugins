@@ -456,7 +456,7 @@
 
     /** Check if the line counts differ. Handles any missing updated timestamp line. */
     const lineCountDiff = Math.abs(existingLines.length - extractedLines.length);
-    if(hasTimestampLine ?  lineCountDiff > 1 : lineCountDiff > 0) {
+    if(hasTimestampLine ? lineCountDiff > 1 : lineCountDiff > 0) {
       console.log('Line counts differ, returning false', { lineCountDiff });
       console.groupEnd();
       return false;
