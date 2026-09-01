@@ -48,6 +48,13 @@
         defaultValue: 'n',
         type: 'boolean',
       },
+
+      /** Prevents rewriting the TOC if the content is identical */
+      PREVENT_IDENTICAL_REWRITE: {
+        label: "Prevent Identical Rewrite (y/n | default: y)",
+        defaultValue: 'y',
+        type: 'boolean',
+      },
     },
     messages: {
       ERROR_INVALID_TITLE_SETTING_VALUE: 'Invalid value provided for "$1". Please remove the following characters: $2',
@@ -80,10 +87,16 @@
       OPERATION_SUCCESS_TITLE: '✅ Operation Successful',
       INSERTED_NEW_TOC_SECTION_BODY: 'Inserted new TOC section.',
       UPDATED_EXISTING_TOC_SECTION_BODY: 'Updated existing TOC section.',
+
+      REWRITE_PREVENTION_TITLE: 'Rewrite Prevention',
+      REWRITE_PREVENTION_BODY: 'TOC content is already up-to-date. No changes made.',
     },
     _: {
       /** Offending characters are for constructing section titles. */
       INVALID_SECTION_TITLE_CHARS: ['/'],
+
+      /** Quote prefix for the TOC section. */
+      TOC_PREFIX: '> .  ',
 
       /** These characters are used in unordered bullet points. */
       BULLET_H1_CHAR: '•',
@@ -134,15 +147,17 @@
         if(setting.type === 'string') {
           if(name === TITLE.label 
             && !!INVALID_SECTION_TITLE_CHARS.find(ch => value.includes(ch))
-          )
+          ) {
             errors.push(
               ERROR_INVALID_TITLE_SETTING_VALUE
                 .replace('$1', name)
                 .replace('$2', INVALID_SECTION_TITLE_CHARS.join(' '))
             );
+          }
         } else if(setting.type === 'boolean') {
-          if(!booleanRegex.test(value.trim()))
+          if(!booleanRegex.test(value.trim())) {
             errors.push(ERROR_INVALID_BOOLEAN_SETTING.replace('$1', name));
+          }
         } else throw Error(`Setting type mismatched: ${setting.label} of type ${setting.type}`);
       }
     }
@@ -317,13 +332,17 @@
       insertOnly 
     });
     
-    let content = hideLastUpdateMessage ? '' : this._getLastUpdateMessage(new Date());
+    const tocLines = [];
     const indexes = { 1: null, 2: null, 3: null };
     let sectionIndex = 0;
     let section = null;
-
-    const { TAB, INVALID_SECTION_TITLE_CHARS } = this.constants._;
-
+    
+    const { TAB, TOC_PREFIX, INVALID_SECTION_TITLE_CHARS } = this.constants._;
+    
+    if(!hideLastUpdateMessage) {
+      tocLines.push(this._getLastUpdateMessage(new Date()));
+    }
+    
     for(const { heading, index } of sections) {
       const isTOC = insertOnly ? false : this._isTOCHeader(heading, title);
       if(!!heading && !!heading.text.trim() && (!isTOC || (isTOC && !!section))) {
@@ -332,17 +351,18 @@
             ? (sectionIndex > 0 && sections[sectionIndex-1].heading === null ? 1 : heading.level) 
             : heading.level;
         let line = 
-          '>.  ' 
+          TOC_PREFIX
           + TAB.repeat(headingLevel-1) 
           + `${this._getNextIndex(indexes, headingLevel, unordered)}  [${heading.text.trim()}]`;
 
-        if(INVALID_SECTION_TITLE_CHARS.find(ch => heading.anchor.includes(ch))) 
+        if(INVALID_SECTION_TITLE_CHARS.find(ch => heading.anchor.includes(ch))) {
           line += `(#${heading.anchor})`;
-        else 
+        } else {
           line += `(https://www.amplenote.com/notes/${noteUUID}#${heading.anchor})`;
+        }
         line += '\n>\n';
         
-        content += line;
+        tocLines.push(line);
         console.info('  >> line:: %O (H%d)', line, heading.level);
       }
       
@@ -353,7 +373,7 @@
       sectionIndex++;
     }
 
-    const retval = { section, content };
+    const retval = { section, tocLines };
     console.log('return', retval);
     console.groupEnd();
     return retval;
@@ -405,6 +425,7 @@
       WARN_ON_OFFENDING_SECTION_TITLES: this._getSettingValue(app, 'WARN_ON_OFFENDING_SECTION_TITLES'),
       USE_BULLET_POINTS: this._getSettingValue(app, 'USE_BULLET_POINTS'),
       HIDE_LAST_UPDATE_MESSAGE: this._getSettingValue(app, 'HIDE_LAST_UPDATE_MESSAGE'),
+      PREVENT_IDENTICAL_REWRITE: this._getSettingValue(app, 'PREVENT_IDENTICAL_REWRITE'),
     });
     console.groupEnd();
   },
@@ -425,6 +446,85 @@
       }
     }
     return null;
+  },
+
+  _matchTOCLines(existingLines, extractedLines) {
+    console.groupCollapsed('_matchTOCLines', { existingLines, extractedLines });
+
+    const hasTimestampLine = existingLines[0]?.startsWith('*<mark');
+    console.log('hasTimestampLine', hasTimestampLine);
+
+    /** Check if the line counts differ. Handles any missing updated timestamp line. */
+    const lineCountDiff = Math.abs(existingLines.length - extractedLines.length);
+    if(hasTimestampLine ?  lineCountDiff > 1 : lineCountDiff > 0) {
+      console.log('Line counts differ, returning false', { lineCountDiff });
+      console.groupEnd();
+      return false;
+    }
+
+    const { TOC_PREFIX } = this.constants._;
+
+    for(let i = hasTimestampLine ? 1 : 0, j = 0; i < existingLines.length; i++, j++) {
+      let line1 = existingLines[i];
+      let line2 = extractedLines[j];
+      console.log('Inspecting lines', { line1, line2 });
+      
+      if(line1 && line2 && line1.startsWith(TOC_PREFIX) && line2.startsWith(TOC_PREFIX)) {
+        line1 = line1.replace(/\n>\n$/, '').trim();
+        line2 = line2.trim();
+        console.log('Inspecting lines 2', { line1, line2 });
+
+        if(line1 !== line2) {
+          console.log('Diff found, returning false');
+          console.groupEnd();
+          return false;
+        }
+      }
+    }
+
+    console.log('No diff found, returning true');
+    console.groupEnd();
+    return true;
+  },
+
+  _extractTOCContent(title, content) {
+    console.groupCollapsed('_extractTOCContent', { title, content });
+
+    const lines = content.split('\n');
+    const { TOC_PREFIX } = this.constants._;
+
+    const startIndex = lines.findIndex(
+      (line) => line.trim() === `### ${title}`
+    );
+    console.log('TOC header index', startIndex);
+
+    if (startIndex === -1) {
+      console.log('TOC header not found');
+      console.groupEnd();
+      return null;
+    }
+
+    const result = [];
+
+    for (let i = startIndex + 1; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+      console.log('Inspecting line', { line });
+
+      if (trimmed === '---') {
+        console.log('Horizontal rule found', trimmed);
+        break;
+      }
+      
+      if (trimmed.startsWith(TOC_PREFIX)) {
+        console.log('TOC line found');
+        result.push(line);
+      }
+    }
+
+    console.log('TOC lines returning', result);
+    console.groupEnd();
+    return result;
   },
 
   /**
@@ -452,6 +552,8 @@
           UPDATED_EXISTING_TOC_SECTION_BODY,
           OPERATION_SUCCESS_TITLE,
           INSERTED_NEW_TOC_SECTION_BODY,
+          REWRITE_PREVENTION_TITLE,
+          REWRITE_PREVENTION_BODY,
         },
       } = this.constants;
 
@@ -587,7 +689,7 @@
       }
 
       const title = this._getSettingValue(app, 'TITLE')
-      const { section, content } = this._generateTOCFromSections(
+      const { section, tocLines } = this._generateTOCFromSections(
         noteUUID,
         title,
         sections,
@@ -600,23 +702,55 @@
       let result = null;
       if(insertOnly) {
         console.log('Inserting directly at cursor position...');
-        result = await app.context.replaceSelection(this._getTOCSection(title, content));
+        result = await app.context.replaceSelection(this._getTOCSection(title, tocLines.join('')));
         console.log('OK', { result });
       } else {
         if(section) {
-          console.log('Updating existing section...');
-          result = await app.replaceNoteContent({ uuid: noteUUID }, content, { section });
-          if(showAlertOnSuccess) 
-            await app.alert(UPDATED_EXISTING_TOC_SECTION_BODY, {
-              preface: OPERATION_SUCCESS_TITLE, 
-            });
+          const preventIdenticalRewrite = this._getSettingValue(app, 'PREVENT_IDENTICAL_REWRITE');
+          let requireUpdate = true;
+
+          if(preventIdenticalRewrite) {
+            const noteContent = await app.getNoteContent({ uuid: noteUUID });
+            const extractedTOCLines = this._extractTOCContent(title, noteContent);
+  
+            if(extractedTOCLines === null) {
+              console.error('Unexpected Error: TOC section not found in the note content, even though it was detected in the sections.', {
+                noteContent,
+                extractedTOCLines,
+                tocLines,
+              });
+            } else if(this._matchTOCLines(tocLines, extractedTOCLines)) {
+              console.log('Older TOC matched newer TOC.');
+              requireUpdate = false;
+  
+              const response = await app.alert(REWRITE_PREVENTION_BODY, {
+                preface: REWRITE_PREVENTION_TITLE, 
+                primaryAction: { label: "ABORT", icon: "back_hand" },
+                actions: [{ icon: "edit", label: "FORCE UPDATE", value: "FORCED" }],
+              });
+              
+              console.log('Alert response for force update:', response === -1 ? 'ABORT' : response);
+              if(response === "FORCED") requireUpdate = true;
+            }
+          }
+
+          if(requireUpdate) {
+            console.log('Updating existing section...');
+            result = await app.replaceNoteContent({ uuid: noteUUID }, tocLines.join(''), { section });
+            if(showAlertOnSuccess) {
+              await app.alert(UPDATED_EXISTING_TOC_SECTION_BODY, {
+                preface: OPERATION_SUCCESS_TITLE, 
+              });
+            }
+          }
         } else {
           console.log('Inserting new section...');
-          result = await app.insertNoteContent({ uuid: noteUUID }, this._getTOCSection(title, content));
-          if(showAlertOnSuccess)
+          result = await app.insertNoteContent({ uuid: noteUUID }, this._getTOCSection(title, tocLines.join('')));
+          if(showAlertOnSuccess) {
             await app.alert(INSERTED_NEW_TOC_SECTION_BODY, {
               preface: OPERATION_SUCCESS_TITLE, 
             });
+          }
         }
       }
 
