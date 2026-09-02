@@ -290,10 +290,8 @@ a = {
     return retval;
   },
 
-  _getLastUpdateMessage(date) {
+  _getLastUpdateMessage() {
     const { LAST_UPDATE_COLOR, LAST_UPDATE_COLOR_CYCLE } = this.constants._;
-
-    const targetDate = date || new Date();
 
     const datetime = new Intl.DateTimeFormat('en-US', {
       weekday: 'short',
@@ -303,7 +301,7 @@ a = {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-    }).format(targetDate);
+    }).format(new Date());
 
     return `*<mark style="color:${LAST_UPDATE_COLOR};">Last updated: ${datetime}<!-- {"cycleColor": "${LAST_UPDATE_COLOR_CYCLE}"} --></mark>*\n`;
   },
@@ -335,7 +333,7 @@ a = {
     const { TAB, TOC_PREFIX, INVALID_SECTION_TITLE_CHARS } = this.constants._;
 
     if (!hideLastUpdateMessage) {
-      tocLines.push(this._getLastUpdateMessage(new Date()));
+      tocLines.push(this._getLastUpdateMessage());
     }
 
     for (const { heading, index } of sections) {
