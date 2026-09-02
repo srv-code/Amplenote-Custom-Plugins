@@ -1,5 +1,5 @@
 // JavaScript
-{
+a = {
   constants: {
     settings: {
       MESSAGE: 'Message (string)',
@@ -7,7 +7,7 @@
       EXPERIMENTS: 'Enable experimental features? (y/n)',
     },
     messages: {
-      INVALID_SETTING_ERROR: 'Invalid value provided for "$1". Please enter \'y\' or \'n\'.',
+      INVALID_SETTING_ERROR: "Invalid value provided for \"$1\". Please enter 'y' or 'n'.",
       ERROR_INVALID_SETTING_VALUE: 'Invalid setting value. Please enter y or n',
     },
     _: {
@@ -18,15 +18,13 @@
   validateSettings(app, settings) {
     const booleanRegex = /y|n/gi;
     const errors = [];
-    const exceptionList = [
-      this.constants.settings.MESSAGE,
-    ];
-    for(const [name, value] of Object.entries(settings)) {
-      if(exceptionList.includes(name)) continue;
-      if(!booleanRegex.test(value.trim()))
+    const exceptionList = [this.constants.settings.MESSAGE];
+    for (const [name, value] of Object.entries(settings)) {
+      if (exceptionList.includes(name)) continue;
+      if (!booleanRegex.test(value.trim()))
         errors.push(this.constants.messages.INVALID_SETTING_ERROR.replace('$1', name));
     }
-    if(errors.length === 0) return false;
+    if (errors.length === 0) return false;
     return errors;
   },
 
@@ -35,12 +33,12 @@
   },
 
   _getTagsAsText(tags = []) {
-    if(tags.length === 0) return 'None';
-    return tags.map((tag, index) => `\n  [${index+1}]  ${tag.text}: ${tag.noteCount}`).join('');
+    if (tags.length === 0) return 'None';
+    return tags.map((tag, index) => `\n  [${index + 1}]  ${tag.text}: ${tag.noteCount}`).join('');
   },
 
   appOption: {
-    "New TOC": {
+    'New TOC': {
       check(app) {
         return false;
       },
@@ -54,14 +52,14 @@
         const note = await app.notes.find(uuid);
         console.log('Note found:', note.name);
         const content = await app.getNoteContent({ uuid });
-        console.log('Note content:', {content});
+        console.log('Note content:', { content });
         const sections = await app.getNoteSections({ uuid });
         console.log('Note sections:', sections);
 
-        const TOC = '**TABLE OF CONTENTS**\n\nbla bla bla...\n\n---\n\n\n\n'
-        let replaceSection = null; 
-        for(const i in sections) {
-          if(sections[i].heading == null) replaceSection = sections[i];
+        const TOC = '**TABLE OF CONTENTS**\n\nbla bla bla...\n\n---\n\n\n\n';
+        let replaceSection = null;
+        for (const i in sections) {
+          if (sections[i].heading == null) replaceSection = sections[i];
           else break;
         }
         // for(const i in sections) {
@@ -69,8 +67,8 @@
         //     replaceSection = sections[i]; break;
         //   }
         // }
-        
-        if(replaceSection == null) {
+
+        if (replaceSection == null) {
           console.log('Need to insert in the beginning of the note');
           // await app.insertNoteContent({ uuid }, TOC + "---\n\n");
         } else {
@@ -79,25 +77,22 @@
           // console.log('Success:', success);
         }
         console.log('Done');
-        
 
-
-        
         // console.log('Note info:', {
-        //   pluginUUID: app.context.pluginUUID, 
-        //   'keys of app.context': Object.keys(app.context), 
-        //   'keys of app': Object.keys(app), 
+        //   pluginUUID: app.context.pluginUUID,
+        //   'keys of app.context': Object.keys(app.context),
+        //   'keys of app': Object.keys(app),
         //   url: app.context.url,
-            // uuid: app.context.noteUUID,
+        // uuid: app.context.noteUUID,
         // });
         // https://www.amplenote.com/notes/6d863896-6193-11f1-b7d2-51718954e1d8
 
         // const sections = await app.getNoteSections({ uuid: app.context.noteUUID });
         // console.log('Note sections:', sections);
         // app.alert('Invoked');
-      }
+      },
     },
-    "Tag Stats": async function(app) {
+    'Tag Stats': async function (app) {
       /* 
         Functions:
           - show all 
@@ -112,19 +107,19 @@
         },
         ALL: {},
       };
-      for(const tag of _tags) tagStats.ALL[tag.text] = {...tag};
+      for (const tag of _tags) tagStats.ALL[tag.text] = { ...tag };
 
       const LIMIT = this.constants._.TAG_EXTRACTION_LIMIT;
       const sortedTags = _tags.toSorted((a, b) => b.noteCount - a.noteCount);
       tagStats.COUNTS.populated = sortedTags.filter(tag => tag.noteCount > 0).slice(0, LIMIT);
       tagStats.COUNTS.least = sortedTags.filter(tag => tag.noteCount > 0).slice(-LIMIT);
 
-      if(this._isRunningOnDesktop()) console.log('Tag Statistics', tagStats, { _tags });
+      if (this._isRunningOnDesktop()) console.log('Tag Statistics', tagStats, { _tags });
 
       let message = `Total count: ${tagStats.COUNTS.length}\n\n`;
       message += `Top ${LIMIT} most poplulated: ${this._getTagsAsText(tagStats.COUNTS.populated)}\n\n`;
       message += `Top ${LIMIT} least poplulated: ${this._getTagsAsText(tagStats.COUNTS.least)}\n\n`;
-      if(this._isRunningOnDesktop()) message += '(See console log for more details)';
+      if (this._isRunningOnDesktop()) message += '(See console log for more details)';
 
       app.alert(message, { preface: 'TAG STATISTICS' });
     },
@@ -165,7 +160,7 @@
       L: 50,
       C: 100,
       D: 500,
-      M: 1000
+      M: 1000,
     };
 
     str = str.toUpperCase();
@@ -176,10 +171,8 @@
       const current = values[str[i]];
       const next = values[str[i + 1]] || 0;
 
-      if (current < next)
-        total -= current;
-      else
-        total += current;
+      if (current < next) total -= current;
+      else total += current;
     }
 
     return total;
@@ -199,7 +192,7 @@
       [9, 'IX'],
       [5, 'V'],
       [4, 'IV'],
-      [1, 'I']
+      [1, 'I'],
     ];
 
     let result = '';
@@ -215,28 +208,34 @@
   },
 
   _getNextIndex(index, level) {
-    console.log('_getNextIndex', {index, level});
-    
-    if(level === 1) {
-      if(index[level] === null) index[level] = 1;
+    console.log('_getNextIndex', { index, level });
+
+    if (level === 1) {
+      if (index[level] === null) index[level] = 1;
       else index[level] += 1;
 
       index[2] = null;
       index[3] = null;
-    } else if(level === 2) {
-      if(index[level] === null) index[level] = 'a';
+    } else if (level === 2) {
+      if (index[level] === null) index[level] = 'a';
       else index[level] = this._nextAlphabet(index[level]);
 
       index[3] = null;
-    } else if(level === 3) {
-      if(index[level] === null) index[level] = 'i';
+    } else if (level === 3) {
+      if (index[level] === null) index[level] = 'i';
       else index[level] = this._nextRoman(index[level]);
     } else throw Error('Invalid level');
 
     return index[level];
   },
 
-  _generateTOCFromSections(noteUUID, sections, INVALID_SECTION_TITLE_CHARS, TOC_HEADING_TEXT, CONSIDER_HEADER_BREAKS) {
+  _generateTOCFromSections(
+    noteUUID,
+    sections,
+    INVALID_SECTION_TITLE_CHARS,
+    TOC_HEADING_TEXT,
+    CONSIDER_HEADER_BREAKS,
+  ) {
     let content = '';
     // const index = {1: 1, 2: 'a', 3: 'i'};
     const indexes = { 1: null, 2: null, 3: null };
@@ -244,40 +243,49 @@
     let section = null;
     let replaceEntireContent = false;
 
-    for(const { heading, index } of sections) {
+    for (const { heading, index } of sections) {
       console.log('_generateTOCFromSections:: inspecting heading', {
-        heading, 
-        'consider?': !!heading && !!heading.text.trim() && !this._isTOCHeader(heading, TOC_HEADING_TEXT)
+        heading,
+        'consider?':
+          !!heading && !!heading.text.trim() && !this._isTOCHeader(heading, TOC_HEADING_TEXT),
       });
       const isTOC = this._isTOCHeader(heading, TOC_HEADING_TEXT);
-      if(!!heading && !!heading.text.trim() && (!isTOC || (isTOC && !!section))) {
-        const headingLevel = CONSIDER_HEADER_BREAKS ? (sectionIndex > 0 && sections[sectionIndex-1].heading === null ? 1 : heading.level) : heading.level;
-        content += '>.  ' + '    '.repeat(headingLevel-1) + `${this._getNextIndex(indexes, headingLevel)}.  [${heading.text.trim()}]`;
-        if(INVALID_SECTION_TITLE_CHARS.find(ch => heading.anchor.includes(ch))) content += `(#${heading.anchor})`;
+      if (!!heading && !!heading.text.trim() && (!isTOC || (isTOC && !!section))) {
+        const headingLevel = CONSIDER_HEADER_BREAKS
+          ? sectionIndex > 0 && sections[sectionIndex - 1].heading === null
+            ? 1
+            : heading.level
+          : heading.level;
+        content +=
+          '>.  ' +
+          '    '.repeat(headingLevel - 1) +
+          `${this._getNextIndex(indexes, headingLevel)}.  [${heading.text.trim()}]`;
+        if (INVALID_SECTION_TITLE_CHARS.find(ch => heading.anchor.includes(ch)))
+          content += `(#${heading.anchor})`;
         else content += `(https://www.amplenote.com/notes/${noteUUID}#${heading.anchor})`;
         content += '\n>\n';
         console.log('_generateTOCFromSections:: building content', content);
       }
-      if(!section && isTOC) section = { heading, index };
+      if (!section && isTOC) section = { heading, index };
       sectionIndex++;
     }
     // if(content) content += '---\n';
     console.log(`_generateTOCFromSections:: FINAL: section: %O, content:\n%O`, section, content);
     return { content, section };
   },
-  
+
   noteOption: {
-    'Alert': {
+    Alert: {
       check(app) {
         return false;
       },
       async run(app, noteUUID) {
         const response = await app.alert('Message', {
           preface: 'Error: Duplicate Section Titles',
-          primaryAction: { icon: "back_hand", label: "ABORT", value: "ABORT" },
+          primaryAction: { icon: 'back_hand', label: 'ABORT', value: 'ABORT' },
           actions: [
-            { icon: "arrow_forward", label: "PROCEED", value: "PROCEED" },
-            { icon: "content_copy", label: "COPY", value: "COPY" },
+            { icon: 'arrow_forward', label: 'PROCEED', value: 'PROCEED' },
+            { icon: 'content_copy', label: 'COPY', value: 'COPY' },
           ],
         });
         console.log('alert response', response);
@@ -291,9 +299,9 @@
         return false;
       },
       async run(app, noteUUID) {
-        // Settings 
+        // Settings
         /** Resets the indentation of any level of heading if immediately following a break (e.g. horizontal line). */
-        const CONSIDER_HEADER_BREAKS = true; 
+        const CONSIDER_HEADER_BREAKS = true;
 
         /** Show a warning when duplicate titles are found and abort the operation. */
         const ABORT_ON_DUPLICATE_TITLES = true;
@@ -304,48 +312,59 @@
         /** Offending characters are for constructing section titles. */
         const INVALID_SECTION_TITLE_CHARS = ['/'];
 
-
         const sections = await app.getNoteSections({ uuid: noteUUID });
-        console.log('>> 1', {sections});
+        console.log('>> 1', { sections });
 
-        if(ABORT_ON_DUPLICATE_TITLES) {
+        if (ABORT_ON_DUPLICATE_TITLES) {
           const dupSections = sections.filter(sec => sec.index != null);
-          console.log('>> 2', {dupSections});
-          if(dupSections.length > 0) {
-            app.alert('Below sections have duplicate titles.\n' 
-              + '(Hint: Fix them either by changing to a different title or pad them using spaces. Creating TOC now will result in ambiguous linkage.)\n' 
-              + 'Current operation is ABORTED!\n\n'
-              + '-- Section Title,  Header Level,  Instance Count --\n' 
-              + dupSections.reduce((text, sec, index) => `${text}\n${index+1}.  '${sec.heading.text}',  H${sec.heading.level},  ${sec.index}`, ''),
-              { preface: 'Error: Duplicate Section Titles' });
+          console.log('>> 2', { dupSections });
+          if (dupSections.length > 0) {
+            app.alert(
+              'Below sections have duplicate titles.\n' +
+                '(Hint: Fix them either by changing to a different title or pad them using spaces. Creating TOC now will result in ambiguous linkage.)\n' +
+                'Current operation is ABORTED!\n\n' +
+                '-- Section Title,  Header Level,  Instance Count --\n' +
+                dupSections.reduce(
+                  (text, sec, index) =>
+                    `${text}\n${index + 1}.  '${sec.heading.text}',  H${sec.heading.level},  ${sec.index}`,
+                  '',
+                ),
+              { preface: 'Error: Duplicate Section Titles' },
+            );
             return;
           }
         }
 
-        if(ABORT_ON_OFFENDING_SECTION_TITLES) {
-          const offendingSections = sections.filter(sec => INVALID_SECTION_TITLE_CHARS.find(ch => sec.heading?.text?.includes(ch)));
-          console.log('>> 3', {offendingSections});
-          if(offendingSections.length > 0) {
-            app.alert('Below sections have problematic titles.\n' 
-              + '(Hint: Fix them by eliminating the offending characters from their titles. Creating TOC now will result in broken linkage.)\n' 
-              + 'Current operation is ABORTED!\n\n'
-              + '-- Section Title,  Header Level, Offending Character(s) and Count --\n' 
-              + offendingSections.reduce((text, sec, index) => {
-                const chars = INVALID_SECTION_TITLE_CHARS.filter(ch => sec.heading.text.includes(ch)).join(' ');
-                return `${text}\n${index+1}.  '${sec.heading.text}',  H${sec.heading.level},  ${chars} (${chars.length})`
-              }, ''),
-              { preface: 'Error: Problematic Section Titles' });
+        if (ABORT_ON_OFFENDING_SECTION_TITLES) {
+          const offendingSections = sections.filter(sec =>
+            INVALID_SECTION_TITLE_CHARS.find(ch => sec.heading?.text?.includes(ch)),
+          );
+          console.log('>> 3', { offendingSections });
+          if (offendingSections.length > 0) {
+            app.alert(
+              'Below sections have problematic titles.\n' +
+                '(Hint: Fix them by eliminating the offending characters from their titles. Creating TOC now will result in broken linkage.)\n' +
+                'Current operation is ABORTED!\n\n' +
+                '-- Section Title,  Header Level, Offending Character(s) and Count --\n' +
+                offendingSections.reduce((text, sec, index) => {
+                  const chars = INVALID_SECTION_TITLE_CHARS.filter(ch =>
+                    sec.heading.text.includes(ch),
+                  ).join(' ');
+                  return `${text}\n${index + 1}.  '${sec.heading.text}',  H${sec.heading.level},  ${chars} (${chars.length})`;
+                }, ''),
+              { preface: 'Error: Problematic Section Titles' },
+            );
             return;
           }
         }
 
         const TOC_HEADING_TEXT = 'TABLE OF CONTENTS';
         const { content, section } = this._generateTOCFromSections(
-          noteUUID, 
-          sections, 
+          noteUUID,
+          sections,
           INVALID_SECTION_TITLE_CHARS,
-          TOC_HEADING_TEXT, 
-          CONSIDER_HEADER_BREAKS, 
+          TOC_HEADING_TEXT,
+          CONSIDER_HEADER_BREAKS,
         ); // '- abc\n- def';
 
         // let sectionToReplace;
@@ -356,17 +375,20 @@
         //     sectionToReplace = section;
         //     break;
         //   }
-        // } 
+        // }
 
-        if(section) {
+        if (section) {
           const success = await app.replaceNoteContent({ uuid: noteUUID }, content, { section });
-          console.log('Replaced existing TOC', {success});
+          console.log('Replaced existing TOC', { success });
           // if(!success) throw Error("Updating TOC Failed!");
         } else {
           const noteContent = await app.getNoteContent({ uuid: noteUUID });
-          await app.insertNoteContent({ uuid: noteUUID }, `### ${TOC_HEADING_TEXT}\n${content}---\n\n`);
+          await app.insertNoteContent(
+            { uuid: noteUUID },
+            `### ${TOC_HEADING_TEXT}\n${content}---\n\n`,
+          );
           console.log('Added TOC at beg');
-        } 
+        }
 
         // const newContent = "**new content**";
         // anchor: 'Main_Heading', href: null, level: 1, text: 'Main Heading'
@@ -383,11 +405,11 @@
       check() {
         return this._isRunningOnDesktop();
       },
-      
+
       run(app) {
         console.log('Plugin settings:', {
-          pluginUUID: app.context.pluginUUID, 
-          noteUUID: app.context.noteUUID, 
+          pluginUUID: app.context.pluginUUID,
+          noteUUID: app.context.noteUUID,
           settings: app.settings,
         });
         return 'ok';
@@ -398,24 +420,24 @@
       check() {
         return this._isRunningOnDesktop();
       },
-      
+
       async run(app) {
         const sections = await app.getNoteSections({ uuid: app.context.noteUUID });
         console.log('Note sections:', sections);
         return 'ok';
-      }
+      },
     },
 
     'note-content': {
       check() {
         return this._isRunningOnDesktop();
       },
-      
+
       async run(app) {
         const content = await app.getNoteContent({ uuid: app.context.noteUUID });
         console.log('Note content:', app.context.noteUUID, content);
         return 'ok';
-      }
+      },
     },
 
     'user-agent': {
@@ -423,9 +445,13 @@
         let agent = null;
         if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
           agent = {
-            type: 'Browser', 
+            type: 'Browser',
             platform: window.navigator.userAgentData?.platform,
-            highEntropyValues: await window.navigator.userAgentData?.getHighEntropyValues(["architecture", "model", "platformVersion"]),
+            highEntropyValues: await window.navigator.userAgentData?.getHighEntropyValues([
+              'architecture',
+              'model',
+              'platformVersion',
+            ]),
             mobile: window.navigator.userAgentData?.mobile,
           };
         } else if (typeof process !== 'undefined' && process.versions && process.versions.node) {
@@ -435,7 +461,7 @@
         }
 
         console.log('User Agent Info:', agent);
-        if(!this._isRunningOnDesktop()) 
+        if (!this._isRunningOnDesktop())
           app.alert(JSON.stringify(agent, null, 2), { preface: 'User Agent Info' });
 
         return 'ok';
@@ -446,18 +472,22 @@
       check() {
         return this._isRunningOnDesktop();
       },
-      
+
       async run(app) {
         const note = await app.notes.find(app.context.noteUUID);
         const clonedNote = {};
         const whiteListedFunctions = [
-          'backlinks', 'images', 'openCounts', 
-          'publicURL', 'settings', 'tasks', 'url',
+          'backlinks',
+          'images',
+          'openCounts',
+          'publicURL',
+          'settings',
+          'tasks',
+          'url',
         ];
-        for(const key of Object.keys(note)) {
-          if(typeof note[key] === 'function') {
-            if(whiteListedFunctions.includes(key))
-              clonedNote[key] = await note[key]();
+        for (const key of Object.keys(note)) {
+          if (typeof note[key] === 'function') {
+            if (whiteListedFunctions.includes(key)) clonedNote[key] = await note[key]();
           } else clonedNote[key] = note[key];
         }
 
@@ -468,4 +498,4 @@
       },
     },
   },
-}
+};
